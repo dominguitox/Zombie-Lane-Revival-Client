@@ -174,7 +174,7 @@ public final class LauncherText {
       "error.neighbor", "Los minutos de vecinos '{0}' no son válidos: de 1 a {1}",
       "error.port", "El puerto '{0}' no es válido: debe ser un entero de {1} a {2}",
       "error.width", "El ancho de la ventana '{0}' no es válido: entero de {1} a {2}",
-      "error.height", "El alto de la ventana '{0}' no es válido: entero de {1} a {2}",
+      "error.height", "La altura de la ventana '{0}' no es válida: entero de {1} a {2}",
       "error.endpointFormat", "Escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767",
       "error.endpointFormatGiven", "Escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767, no '{0}'",
       "error.authInvalid", "Respuesta de autenticación inválida.",

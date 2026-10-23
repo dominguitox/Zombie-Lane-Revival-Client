@@ -2,7 +2,7 @@
 param(
     [string]$AssetsRoot = 'C:\Proyectos\Zombie-Lane-Assets',
     [string]$OutputRoot = '',
-    [string]$Version = '0.1.1',
+    [string]$Version = '0.1.2',
     [string]$JavacPath = '',
     [switch]$Release,
     [switch]$SkipZip,
@@ -831,6 +831,9 @@ Changes in this build:
 - The launcher asks for a language on first run (English, French, Italian,
   German or Spanish), stores it locally in launcher.properties and applies it
   to the selected profile. No language data is sent to the server.
+- The launcher fills option fields from defaults when no local profile is
+  available, and reports width and height independently. Duplicate
+  zombie-lane.properties warnings are no longer shown.
 - The Play button stays enabled and validates the form before launch.
 - The build compiles the explicit public client class list with the release
   stubs instead of scanning every source file in the tree.

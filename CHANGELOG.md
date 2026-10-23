@@ -3,6 +3,20 @@
 All notable changes to the public Zombie Lane client are documented here.
 The format follows Keep a Changelog, and versions use the alpha `0.1.x` scheme.
 
+## [0.1.2] - 2026-10-23
+
+### Fixed
+
+- Launcher option fields now fall back to the documented defaults when there
+  is no local profile, or when the selected profile cannot be read. Previously
+  the fields were left blank and produced a wall of validation errors.
+- Removed duplicate `zombie-lane.properties` warnings from the launcher
+  validator. Window width and height are now reported as independent errors.
+
+### Changed
+
+- The default release version is `0.1.2`.
+
 ## [0.1.1] - 2026-10-23
 
 ### Added

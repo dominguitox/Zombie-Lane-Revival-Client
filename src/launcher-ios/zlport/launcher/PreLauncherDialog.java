@@ -455,33 +455,36 @@ public final class PreLauncherDialog {
       return row;
    }
 
-   /** Applies the freshly selected profile's options to the fields, without touching the connection. */
+   /** Applies the selected profile's options, or the defaults when no profile exists. */
    private void reapplyOptions() {
-      if (this.profileBox == null) {
-         return;
+      Settings settings = Settings.defaults();
+      if (this.profileBox != null) {
+         Object item = this.profileBox.getSelectedItem();
+         if (item instanceof LocalProfiles.ProfileInfo profile) {
+            try {
+               settings = Settings.load(profile.directory());
+            } catch (RuntimeException exception) {
+               LOG.log(Level.WARNING, "opciones del perfil por defecto (no se pudieron leer)", exception);
+            }
+         }
       }
-      Object item = this.profileBox.getSelectedItem();
-      if (!(item instanceof LocalProfiles.ProfileInfo profile)) {
-         return;
-      }
-      try {
-         Settings settings = Settings.load(profile.directory());
-         this.currentSettings = settings;
-         this.widthField.setText(String.valueOf(settings.width() != null ? settings.width() : DEFAULT_WINDOW_WIDTH));
-         this.heightField.setText(String.valueOf(settings.height() != null ? settings.height() : DEFAULT_WINDOW_HEIGHT));
-         this.maximizedBox.setSelected(settings.maximized());
-         this.fullscreenBox.setSelected(settings.fullscreen());
-         this.pauseFocusBox.setSelected(settings.pauseOnFocusLoss());
-         this.zoomField.setText(String.valueOf(settings.wheelStep()));
-         this.audioBox.setSelected(settings.audio());
-         this.glDebugBox.setSelected(settings.glDebug());
-         this.levelBox.setSelectedItem(settings.logLevel());
-         this.rechargeField.setText(String.valueOf(settings.energyRechargeSeconds()));
-         this.spawnField.setText(String.valueOf(settings.spawnMultiplier()));
-         this.intervalField.setText(String.valueOf(settings.neighborIntervalMinutes()));
-      } catch (RuntimeException exception) {
-         LOG.log(Level.WARNING, "opciones del perfil por defecto (no se pudieron leer)", exception);
-      }
+      this.currentSettings = settings;
+      this.applySettings(settings);
+   }
+
+   private void applySettings(Settings settings) {
+      this.widthField.setText(String.valueOf(settings.width() != null ? settings.width() : DEFAULT_WINDOW_WIDTH));
+      this.heightField.setText(String.valueOf(settings.height() != null ? settings.height() : DEFAULT_WINDOW_HEIGHT));
+      this.maximizedBox.setSelected(settings.maximized());
+      this.fullscreenBox.setSelected(settings.fullscreen());
+      this.pauseFocusBox.setSelected(settings.pauseOnFocusLoss());
+      this.zoomField.setText(String.valueOf(settings.wheelStep()));
+      this.audioBox.setSelected(settings.audio());
+      this.glDebugBox.setSelected(settings.glDebug());
+      this.levelBox.setSelectedItem(settings.logLevel());
+      this.rechargeField.setText(String.valueOf(settings.energyRechargeSeconds()));
+      this.spawnField.setText(String.valueOf(settings.spawnMultiplier()));
+      this.intervalField.setText(String.valueOf(settings.neighborIntervalMinutes()));
    }
 
    private void createProfile() {
@@ -678,9 +681,13 @@ public final class PreLauncherDialog {
           }
       }
 
-      String windowError = windowSizeError(f.width(), f.height());
-      if (windowError != null) {
-         errors.add(windowError);
+      Integer width = dimension(f.width(), MIN_WINDOW_WIDTH);
+      Integer height = dimension(f.height(), MIN_WINDOW_HEIGHT);
+      if (width == null) {
+         errors.add(LauncherText.format("error.width", f.width(), MIN_WINDOW_WIDTH, MAX_WINDOW_DIMENSION));
+      }
+      if (height == null) {
+         errors.add(LauncherText.format("error.height", f.height(), MIN_WINDOW_HEIGHT, MAX_WINDOW_DIMENSION));
       }
 
       String zoomError = zoomError(f.zoom());
@@ -704,9 +711,6 @@ public final class PreLauncherDialog {
          errors.add(intervalError);
       }
 
-      java.util.Properties options = new java.util.Properties();
-      options.putAll(optionValues(f));
-      errors.addAll(Settings.fromProperties(options).warnings());
       return errors;
    }
 
@@ -775,18 +779,6 @@ public final class PreLauncherDialog {
    private static String portError(String portText) {
       String error = LauncherText.format("error.port", portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT);
       return boundedInteger(portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT) == null ? error : null;
-   }
-
-   private static String windowSizeError(String widthText, String heightText) {
-      Integer width = dimension(widthText, MIN_WINDOW_WIDTH);
-      Integer height = dimension(heightText, MIN_WINDOW_HEIGHT);
-      if (width == null) {
-         return LauncherText.format("error.width", widthText, MIN_WINDOW_WIDTH, MAX_WINDOW_DIMENSION);
-      }
-      if (height == null) {
-         return LauncherText.format("error.height", heightText, MIN_WINDOW_HEIGHT, MAX_WINDOW_DIMENSION);
-      }
-      return null;
    }
 
    private static Integer dimension(String text, int min) {

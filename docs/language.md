@@ -1,6 +1,6 @@
 # Language Support
 
-Applies to: **0.1.1**
+Applies to: **0.1.1+**
 
 ## Scope
 
@@ -104,7 +104,7 @@ To add a language:
 1. Add its code, index and native name to `LauncherLanguage`.
 2. Add a complete map to `LauncherText` and select it in `LauncherText.table`.
 3. Confirm that the game has assets for the corresponding index.
-4. Add the language to the manual checks in `docs/release-0.1.1.md`.
+4. Add the language to the manual checks in `docs/release-0.1.2.md`.
 
 Indexes are part of the settings format. Do not renumber existing languages;
 append new indexes instead.

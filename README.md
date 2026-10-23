@@ -33,20 +33,20 @@ From the repository root:
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\build-client.ps1 `
     -AssetsRoot "C:\path\to\Zombie-Lane-Assets" `
-    -Version 0.1.1 `
+    -Version 0.1.2 `
     -Release
 ```
 
 The default output is a sibling of this repository:
 
-- Release folder: `..\Zombie-Lane-Alpha-0.1.1`
-- Release zip: `..\Zombie-Lane-Alpha-0.1.1.zip`
+- Release folder: `..\Zombie-Lane-Alpha-0.1.2`
+- Release zip: `..\Zombie-Lane-Alpha-0.1.2.zip`
 
 Options:
 
 - `-AssetsRoot`: external assets root. The default is `C:\Proyectos\Zombie-Lane-Assets`.
 - `-OutputRoot`: override the release folder. The default is `..\Zombie-Lane-Alpha-<version>`.
-- `-Version`: release version. The default is `0.1.1`.
+- `-Version`: release version. The default is `0.1.2`.
 - `-JavacPath`: explicit JDK compiler path.
 - `-Release`: require clean, committed sources. Use this for a public release.
 - `-SkipZip`: assemble the folder but do not create the zip.
@@ -72,18 +72,19 @@ Verified on 2026-10-23 on Windows with Temurin 25.0.4.1 and the bundled Java 21.
 - The compiled class set contains the `v0.1-alpha` classes, the launcher-validation inner class `PreLauncherDialog$FieldFilter`, and the `0.1.1` language classes (`LauncherLanguage`, `LauncherLanguage$Language`, `LauncherText`, `LanguageDialog`, `GameLanguage`). `PreLauncherDialog` and `ServerConnection` include the validator and localization changes; the intended release stubs are `zlport.dev.DevMode` and `zlport.dev.LauncherDevOptions`.
 - Common files under `runtime`, `lib`, and `game-assets-ios` are byte-identical to `v0.1-alpha`.
 - The headless smoke test exits 0 and does not print the `[dev]` banner.
-- The `0.1.1` language harness passes 38 checks (catalogue, state migration, byte-preserving settings update, missing-record behavior and localized validators), and the validator harness passes 13 checks.
+- The `0.1.1+` language harness passes 38 checks (catalogue, state migration, byte-preserving settings update, missing-record behavior and localized validators).
+- The launcher-default harness passes 8 checks with an empty profile list, and the validator harness passes 13 checks.
 - The assembled folder and zip pass the release allowlist and sanitization checks.
 
-The `0.1.1` package does not include `mission-backups` or three stale root files that existed only in the `0.1` output (`0`, `1.png`, `2.png`). Those files are not part of the canonical asset tree.
+The `0.1.2` package does not include `mission-backups` or three stale root files that existed only in the `0.1` output (`0`, `1.png`, `2.png`). Those files are not part of the canonical asset tree.
 
-### Version 0.1.1
+### Version 0.1.2
 
-`0.1.1` is the first release assembled from the sanitized public tree. It fixes the player-edition build (no development hooks) and replaces the previous all-source compile with the explicit client class list.
+`0.1.2` is a launcher validation patch over `0.1.1`. When no local profile exists, the option fields now fall back to the documented defaults instead of staying empty. Duplicate `zombie-lane.properties` warnings were removed, and window width and height are validated independently.
 
-It also adds a local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included. The loading-screen crash is still under investigation.
+The `0.1.1` release introduced the local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included. The loading-screen crash is still under investigation.
 
-See `docs/language.md` and `docs/release-0.1.1.md` for the implementation and release details.
+See `docs/language.md`, `docs/release-0.1.2.md` and `docs/release-0.1.1.md` for the implementation and release details.
 
 ## Run
 
