@@ -68,8 +68,8 @@ The build:
 
 Verified on 2026-10-23 on Windows with Temurin 25.0.4.1 and the bundled Java 21.0.8 runtime:
 
-- The build compiles 62 classes.
-- The compiled class set contains the `v0.1-alpha` classes plus the launcher-validation inner classes (`PreLauncherDialog$1` and `PreLauncherDialog$FieldFilter`). `PreLauncherDialog` and `ServerConnection` include the validator changes; the intended release stubs are `zlport.dev.DevMode` and `zlport.dev.LauncherDevOptions`.
+- The build compiles 61 classes.
+- The compiled class set contains the `v0.1-alpha` classes plus the launcher-validation inner class `PreLauncherDialog$FieldFilter`. `PreLauncherDialog` and `ServerConnection` include the validator changes; the intended release stubs are `zlport.dev.DevMode` and `zlport.dev.LauncherDevOptions`.
 - Common files under `runtime`, `lib`, and `game-assets-ios` are byte-identical to `v0.1-alpha`.
 - The headless smoke test exits 0 and does not print the `[dev]` banner.
 - The assembled folder and zip pass the release allowlist and sanitization checks.

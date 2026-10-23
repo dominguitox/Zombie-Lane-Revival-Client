@@ -30,8 +30,6 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -137,7 +135,6 @@ public final class PreLauncherDialog {
    private JTextField rechargeField;
    private JTextField spawnField;
    private JTextField intervalField;
-   private JButton play;
    private Settings currentSettings = Settings.defaults();
 
    private PreLauncherDialog(Path dataRoot, PreLauncherState seed, boolean pickProfile) {
@@ -177,19 +174,17 @@ public final class PreLauncherDialog {
       this.updateProfileVisibility();
 
       JPanel buttons = new JPanel();
-      this.play = new JButton("Jugar");
-      this.play.addActionListener(action -> this.play());
+      JButton play = new JButton("Jugar");
+      play.addActionListener(action -> this.play());
       JButton cancel = new JButton("Cancelar");
       cancel.addActionListener(action -> this.cancel());
       JButton privacy = new JButton("Privacidad...");
       privacy.addActionListener(action -> AlphaConsent.showDialog(this.dataRoot));
-      this.dialog.getRootPane().setDefaultButton(this.play);
-      buttons.add(this.play);
+      this.dialog.getRootPane().setDefaultButton(play);
+      buttons.add(play);
       buttons.add(cancel);
       buttons.add(privacy);
       content.add(buttons, sectionConstraints(row));
-      this.installValidationListeners();
-      this.refreshValidation();
 
       this.dialog.setContentPane(content);
       this.dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -560,51 +555,6 @@ public final class PreLauncherDialog {
       this.userField.setEnabled(enabled);
       this.passwordField.setEnabled(enabled);
       this.rememberUser.setEnabled(enabled);
-   }
-
-   private void installValidationListeners() {
-      DocumentListener documentListener = new DocumentListener() {
-         @Override
-         public void insertUpdate(DocumentEvent event) {
-            refreshValidation();
-         }
-
-         @Override
-         public void removeUpdate(DocumentEvent event) {
-            refreshValidation();
-         }
-
-         @Override
-         public void changedUpdate(DocumentEvent event) {
-            refreshValidation();
-         }
-      };
-      JTextField[] textFields = {
-         this.hostField, this.portField, this.userField, this.passwordField,
-         this.widthField, this.heightField, this.zoomField,
-         this.rechargeField, this.spawnField, this.intervalField
-      };
-      for (JTextField field : textFields) {
-         field.getDocument().addDocumentListener(documentListener);
-      }
-      java.awt.event.ActionListener actionListener = event -> this.refreshValidation();
-      this.localMode.addActionListener(actionListener);
-      this.serverMode.addActionListener(actionListener);
-      this.registerAccount.addActionListener(actionListener);
-      this.rememberUser.addActionListener(actionListener);
-      this.levelBox.addActionListener(actionListener);
-      if (this.profileBox != null) {
-         this.profileBox.addItemListener(event -> this.refreshValidation());
-      }
-   }
-
-   private void refreshValidation() {
-      if (this.play == null) {
-         return;
-      }
-      List<String> errors = validateFields(this.collectFields());
-      this.play.setEnabled(errors.isEmpty());
-      this.play.setToolTipText(errors.isEmpty() ? null : String.join(" | ", errors));
    }
 
    private void limitLength(JTextField field, int maxLength) {
