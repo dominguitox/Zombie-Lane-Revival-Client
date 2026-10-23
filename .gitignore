@@ -1,0 +1,14 @@
+/build/
+/out/
+*.class
+*.jar
+*.dll
+*.exe
+/runtime/
+/lib/
+/game-assets-ios/
+/client-overrides/
+/server-data/
+/.idea/
+/.vscode/
+*.log
