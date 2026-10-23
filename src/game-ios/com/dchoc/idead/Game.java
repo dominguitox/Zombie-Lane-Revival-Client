@@ -16,6 +16,7 @@ import java.util.Locale;
 import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 import zlport.ios.Ios;
+import zlport.launcher.LauncherLanguage;
 
 public class Game implements FlowHandler {
    public static final boolean DEBUG_ZOOM = false;
@@ -127,6 +128,12 @@ public class Game implements FlowHandler {
    }
 
    private int getDeviceLangauge() {
+      String forced = System.getProperty(LauncherLanguage.PROPERTY);
+      int forcedIndex = LauncherLanguage.indexForCode(forced);
+      if (forcedIndex >= 0) {
+         return forcedIndex;
+      }
+
       String language = Locale.getDefault().getLanguage();
 
       return switch (language) {

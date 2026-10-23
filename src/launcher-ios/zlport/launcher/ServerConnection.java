@@ -60,7 +60,7 @@ public record ServerConnection(String host, int port) {
          throw new IllegalArgumentException(error);
       }
       if (port < MIN_PORT || port > MAX_PORT) {
-         throw new IllegalArgumentException("El puerto " + port + " no es válido: debe ser un entero de " + MIN_PORT + " a " + MAX_PORT);
+         throw new IllegalArgumentException(LauncherText.format("error.port", port, MIN_PORT, MAX_PORT));
       }
    }
 
@@ -77,24 +77,24 @@ public record ServerConnection(String host, int port) {
    /** Validates a host without Swing; returns the rejection reason or null when valid. */
    public static String validateHost(String raw) {
       if (raw == null) {
-         return "Escribe el host o la IP del servidor.";
+         return LauncherText.get("error.hostRequired");
       }
       String host = normalizeHost(raw);
       if (host.isEmpty()) {
-         return "Escribe el host o la IP del servidor.";
+         return LauncherText.get("error.hostRequired");
       }
       if (host.length() > MAX_HOST_LENGTH) {
-         return "El host no puede pasar de " + MAX_HOST_LENGTH + " caracteres.";
+         return LauncherText.format("error.hostTooLong", MAX_HOST_LENGTH);
       }
       if (host.indexOf(':') >= 0) {
-         return "Escribe el puerto en su campo; IPv6 no está permitido en este campo.";
+         return LauncherText.get("error.hostPortField");
       }
       if (host.indexOf('/') >= 0 || host.indexOf('\\') >= 0 || host.indexOf('?') >= 0 || host.indexOf('#') >= 0 || host.indexOf('@') >= 0) {
-         return "El host no puede contener rutas ni separadores; escribe solo la IP o el nombre.";
+         return LauncherText.get("error.hostPaths");
       }
       for (int i = 0; i < host.length(); i++) {
          if (Character.isWhitespace(host.charAt(i))) {
-            return "El host no puede contener espacios.";
+            return LauncherText.get("error.hostSpaces");
          }
       }
       return null;
@@ -122,13 +122,13 @@ public record ServerConnection(String host, int port) {
          return null;
       }
       if (user.length() > MAX_USER_LENGTH) {
-         return "El usuario no puede pasar de " + MAX_USER_LENGTH + " caracteres.";
+         return LauncherText.format("error.userTooLong", MAX_USER_LENGTH);
       }
       for (int i = 0; i < user.length(); i++) {
          char c = user.charAt(i);
          boolean allowed = Character.isLetterOrDigit(c) || c == ' ' || c == '.' || c == '_' || c == '-' || (c >= 0xC0 && c <= 0xFF);
          if (!allowed) {
-            return "El usuario solo admite letras, números, espacios y . _ -";
+            return LauncherText.get("error.userChars");
          }
       }
       return null;
@@ -185,10 +185,10 @@ public record ServerConnection(String host, int port) {
       try {
          port = Integer.parseInt(portText.strip());
       } catch (NumberFormatException exception) {
-         throw new IllegalArgumentException("El puerto '" + portText + "' no es válido: debe ser un entero de " + MIN_PORT + " a " + MAX_PORT);
+         throw new IllegalArgumentException(LauncherText.format("error.port", portText, MIN_PORT, MAX_PORT));
       }
       if (port < MIN_PORT || port > MAX_PORT) {
-         throw new IllegalArgumentException("El puerto " + portText + " no es válido: debe ser un entero de " + MIN_PORT + " a " + MAX_PORT);
+         throw new IllegalArgumentException(LauncherText.format("error.port", portText, MIN_PORT, MAX_PORT));
       }
       return new ServerConnection(normalizeHost(host), port);
    }
@@ -197,7 +197,7 @@ public record ServerConnection(String host, int port) {
    public static ServerConnection parseEndpoint(String text) {
       String rest = normalizeHost(text);
       if (rest == null || rest.isEmpty()) {
-         throw new IllegalArgumentException("escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767");
+         throw new IllegalArgumentException(LauncherText.get("error.endpointFormat"));
       }
       int path = rest.indexOf('/');
       if (path >= 0) {
@@ -210,7 +210,7 @@ public record ServerConnection(String host, int port) {
       int colon = rest.lastIndexOf(':');
       if (colon < 0) {
          throw new IllegalArgumentException(
-            "escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767, no '" + text + "'"
+            LauncherText.format("error.endpointFormatGiven", text)
          );
       }
       return of(rest.substring(0, colon), rest.substring(colon + 1));
@@ -258,7 +258,7 @@ public record ServerConnection(String host, int port) {
          java.util.regex.Matcher id = java.util.regex.Pattern.compile("\\\"dcgId\\\"\\s*:\\s*\\\"(\\d+)\\\"").matcher(body);
          java.util.regex.Matcher session = java.util.regex.Pattern.compile("\\\"sessionId\\\"\\s*:\\s*\\\"([a-fA-F0-9-]+)\\\"").matcher(body);
          if (!id.find() || !session.find()) {
-            return new AuthResult(false, "", "", "Respuesta de autenticación inválida.");
+            return new AuthResult(false, "", "", LauncherText.get("error.authInvalid"));
          }
          return new AuthResult(true, id.group(1), session.group(1), "ok");
       } catch (IOException | RuntimeException exception) {

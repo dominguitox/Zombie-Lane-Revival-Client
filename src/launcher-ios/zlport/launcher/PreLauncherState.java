@@ -33,6 +33,7 @@ public final class PreLauncherState {
    static final String USER = "server.user";
    static final String REMEMBER_USER = "server.remember-user";
    static final String LAST_PROFILE = "profile.last";
+   static final String LANGUAGE = "language";
    /** Dev editions only: shared missions directory; empty value = the default. */
    static final String DEV_MISSIONS = "dev.missions-directory";
 
@@ -43,12 +44,13 @@ public final class PreLauncherState {
    private final boolean rememberUser;
    private final String lastProfile;
    private final String devMissions;
+   private final String language;
 
    private static final Mode DEFAULT_MODE = Mode.SERVER;
    private static final String DEFAULT_HOST = "127.0.0.1";
    private static final int DEFAULT_PORT = 6767;
 
-   private PreLauncherState(Mode mode, String host, int port, String user, boolean rememberUser, String lastProfile, String devMissions) {
+   private PreLauncherState(Mode mode, String host, int port, String user, boolean rememberUser, String lastProfile, String devMissions, String language) {
       this.mode = mode == null ? DEFAULT_MODE : mode;
       this.host = host == null ? "" : host.strip();
       this.port = port;
@@ -56,11 +58,19 @@ public final class PreLauncherState {
       this.rememberUser = rememberUser;
       this.lastProfile = lastProfile == null ? "" : lastProfile.strip();
       this.devMissions = devMissions == null ? "" : devMissions.strip();
+      this.language = LauncherLanguage.normalize(language).orElse("");
    }
 
    /** Builds a state validating the field values: invalid ones fall back to their defaults. */
    public static PreLauncherState of(
       Mode mode, String host, Integer port, String user, boolean rememberUser, String lastProfile, String devMissions
+   ) {
+      return of(mode, host, port, user, rememberUser, lastProfile, devMissions, "");
+   }
+
+   /** Builds a state validating the field values: invalid ones fall back to their defaults. */
+   public static PreLauncherState of(
+      Mode mode, String host, Integer port, String user, boolean rememberUser, String lastProfile, String devMissions, String language
    ) {
       int resolvedPort = port == null ? DEFAULT_PORT : port;
       if (resolvedPort < ServerConnection.MIN_PORT || resolvedPort > ServerConnection.MAX_PORT) {
@@ -74,11 +84,11 @@ public final class PreLauncherState {
       if (!resolvedProfile.matches("\\d{15}")) {
          resolvedProfile = "";
       }
-      return new PreLauncherState(mode, host, resolvedPort, resolvedUser, rememberUser, resolvedProfile, devMissions);
+      return new PreLauncherState(mode, host, resolvedPort, resolvedUser, rememberUser, resolvedProfile, devMissions, language);
    }
 
    public static PreLauncherState defaults() {
-      return new PreLauncherState(DEFAULT_MODE, DEFAULT_HOST, DEFAULT_PORT, "", true, "", "");
+      return new PreLauncherState(DEFAULT_MODE, DEFAULT_HOST, DEFAULT_PORT, "", true, "", "", "");
    }
 
    /** Reads the file; any missing or invalid value falls back to the defaults. */
@@ -125,7 +135,8 @@ public final class PreLauncherState {
       if (!lastProfile.matches("\\d{15}")) {
          lastProfile = "";
       }
-      return new PreLauncherState(mode, host, port, user, remember, lastProfile, devMissions);
+      String language = LauncherLanguage.normalize(p.getProperty(LANGUAGE, "").strip()).orElse("");
+      return new PreLauncherState(mode, host, port, user, remember, lastProfile, devMissions, language);
    }
 
    /** Writes the file atomically (temporary file then move). */
@@ -151,6 +162,9 @@ public final class PreLauncherState {
       s.append("# Pre-game launcher state. Convenience only: game and launch options").append(n);
       s.append("# live in zombie-lane.properties inside each profile folder.").append(n);
       s.append("# No password is ever stored in this file or anywhere; there is no field for it.").append(n);
+      if (!this.language.isEmpty()) {
+         s.append(LANGUAGE).append('=').append(this.language).append(n);
+      }
       s.append(MODE).append('=').append(this.mode == Mode.LOCAL ? "local" : "server").append(n);
       s.append(HOST).append('=').append(this.host).append(n);
       s.append(PORT).append('=').append(this.port).append(n);
@@ -199,11 +213,19 @@ public final class PreLauncherState {
       return this.devMissions;
    }
 
+   public String language() {
+      return this.language;
+   }
+
    public PreLauncherState withUser(String user) {
-      return new PreLauncherState(this.mode, this.host, this.port, user, this.rememberUser, this.lastProfile, this.devMissions);
+      return new PreLauncherState(this.mode, this.host, this.port, user, this.rememberUser, this.lastProfile, this.devMissions, this.language);
    }
 
    public PreLauncherState withMissionDirectory(String directory) {
-      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, directory);
+      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, directory, this.language);
+   }
+
+   public PreLauncherState withLanguage(String language) {
+      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, this.devMissions, language);
    }
 }

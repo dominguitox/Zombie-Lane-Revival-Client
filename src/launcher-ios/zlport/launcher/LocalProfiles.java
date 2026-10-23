@@ -45,21 +45,21 @@ public final class LocalProfiles {
 
          JPanel panel = new JPanel();
          panel.setLayout(new java.awt.GridLayout(0, 1));
-         panel.add(new JLabel(profiles.isEmpty() ? "No hay perfiles locales. Crea uno nuevo para empezar." : "Perfil local:"));
+         panel.add(new JLabel(profiles.isEmpty() ? LauncherText.get("profile.noProfilesShort") : LauncherText.get("profile.localLabel")));
          if (profiles.isEmpty() && Files.isDirectory(dataRoot.resolve("files"))) {
-            panel.add(new JLabel("Se detectó un guardado anterior fuera de players; no se copiará ni modificará."));
+            panel.add(new JLabel(LauncherText.get("profile.legacyWarning")));
          }
          if (!profiles.isEmpty()) {
             panel.add(selector);
          }
 
          Object[] options = profiles.isEmpty()
-            ? new Object[] { "Crear perfil nuevo", "Cancelar" }
-            : new Object[] { "Iniciar", "Crear perfil nuevo", "Cancelar" };
+            ? new Object[] { LauncherText.get("button.createProfile"), LauncherText.get("button.cancel") }
+            : new Object[] { LauncherText.get("button.start"), LauncherText.get("button.createProfile"), LauncherText.get("button.cancel") };
          int selected = JOptionPane.showOptionDialog(
             null,
             panel,
-            "Zombie Lane - Seleccionar perfil",
+            LauncherText.get("profile.pickerTitle"),
             JOptionPane.DEFAULT_OPTION,
             JOptionPane.PLAIN_MESSAGE,
             null,
@@ -157,12 +157,12 @@ public final class LocalProfiles {
    private static void create(Path profilesDirectory) throws IOException {
       JTextField nameField = new JTextField(24);
       JPanel panel = new JPanel();
-      panel.add(new JLabel("Nombre del perfil:"));
+      panel.add(new JLabel(LauncherText.get("profile.namePrompt")));
       panel.add(nameField);
       int answer = JOptionPane.showConfirmDialog(
          null,
          panel,
-         "Crear perfil nuevo",
+         LauncherText.get("profile.createTitle"),
          JOptionPane.OK_CANCEL_OPTION,
          JOptionPane.PLAIN_MESSAGE
       );
@@ -172,7 +172,7 @@ public final class LocalProfiles {
 
       String name = nameField.getText().strip();
       if (name.isEmpty()) {
-         JOptionPane.showMessageDialog(null, "Escribe un nombre para el perfil.", "Zombie Lane", JOptionPane.INFORMATION_MESSAGE);
+         JOptionPane.showMessageDialog(null, LauncherText.get("profile.nameRequired"), "Zombie Lane", JOptionPane.INFORMATION_MESSAGE);
          return;
       }
 
@@ -240,7 +240,7 @@ public final class LocalProfiles {
 
          Properties metadata = new Properties();
          metadata.setProperty("id", id);
-         metadata.setProperty("name", "Perfil existente");
+         metadata.setProperty("name", LauncherText.get("profile.existingName"));
          metadata.setProperty("importedFrom", "legacy-local-save");
          try (var writer = Files.newBufferedWriter(stagingDirectory.resolve(METADATA_NAME))) {
             metadata.store(writer, "Imported local Zombie Lane profile");

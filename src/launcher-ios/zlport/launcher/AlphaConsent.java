@@ -57,19 +57,7 @@ final class AlphaConsent {
 
    /** Abre el diálogo de privacidad; guarda siempre la respuesta. */
    static boolean showDialog(Path dataRoot) {
-      JTextArea details = new JTextArea(
-         "Qué se envía:\n"
-            + "  - Registro técnico de la sesión (errores, avisos y tiempos).\n"
-            + "  - Acciones de juego registradas por el juego (sin contraseñas).\n"
-            + "  - Versión, sistema operativo, Java, memoria y datos del equipo.\n"
-            + "  - Tu nombre de usuario de la alpha y el identificador de cuenta.\n\n"
-            + "Qué NO se envía:\n"
-            + "  - Contraseñas ni la partida guardada.\n\n"
-            + "El servidor de la alpha conserva los informes 30 días. El organizador\n"
-            + "puede conservar copias de esta alpha durante más tiempo.\n\n"
-            + "Puedes cambiar esta elección cuando quieras con el botón Privacidad\n"
-            + "del lanzador."
-      );
+      JTextArea details = new JTextArea(LauncherText.get("alpha.details"));
       details.setEditable(false);
       details.setLineWrap(true);
       details.setWrapStyleWord(true);
@@ -81,15 +69,15 @@ final class AlphaConsent {
 
       JPanel panel = new JPanel();
       panel.setLayout(new javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS));
-      panel.add(new JLabel("¿Enviar informes de diagnóstico al servidor de la alpha?"));
+      panel.add(new JLabel(LauncherText.get("alpha.question")));
       panel.add(javax.swing.Box.createVerticalStrut(8));
       panel.add(new JScrollPane(details));
 
-      Object[] options = {"Aceptar y enviar", "Ahora no"};
+      Object[] options = { LauncherText.get("alpha.accept"), LauncherText.get("alpha.notNow") };
       int choice = JOptionPane.showOptionDialog(
          null,
          panel,
-         "Zombie Lane alpha: informes de diagnóstico",
+         LauncherText.get("alpha.title"),
          JOptionPane.YES_NO_OPTION,
          JOptionPane.QUESTION_MESSAGE,
          null,

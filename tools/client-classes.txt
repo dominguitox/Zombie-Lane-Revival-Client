@@ -2,6 +2,10 @@ src\launcher\zlport\launcher\Launcher.java
 src\launcher\zlport\launcher\Settings.java
 src\launcher\zlport\launcher\Config.java
 src\launcher-ios\zlport\launcher\IosMain.java
+src\launcher-ios\zlport\launcher\LauncherLanguage.java
+src\launcher-ios\zlport\launcher\LauncherText.java
+src\launcher-ios\zlport\launcher\LanguageDialog.java
+src\launcher-ios\zlport\launcher\GameLanguage.java
 src\launcher-ios\zlport\launcher\LocalProfiles.java
 src\game-ios\com\dchoc\iphonewrappers\SettingsWrapper.java
 src\game-ios\com\dchoc\toolkit\Toolkit.java

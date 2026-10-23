@@ -828,6 +828,10 @@ Changes in this build:
 - Dev mode is compiled out: the release uses the no-op DevMode and
   LauncherDevOptions classes, so the "[dev]" banner and dev-only launcher
   controls are not present.
+- The launcher asks for a language on first run (English, French, Italian,
+  German or Spanish), stores it locally in launcher.properties and applies it
+  to the selected profile. No language data is sent to the server.
+- The Play button stays enabled and validates the form before launch.
 - The build compiles the explicit public client class list with the release
   stubs instead of scanning every source file in the tree.
 - Release assembly rejects server code and data, sources, tools, tests, docs,

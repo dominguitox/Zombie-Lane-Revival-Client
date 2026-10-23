@@ -74,6 +74,35 @@ public final class IosMain {
          PreLauncherState state = stateSeed(dataRoot);
          Optional<PreLauncherDialog.Selection> selection = Optional.empty();
 
+         // Language preference: launcher.properties may not exist at all (first
+         // run) or may predate this feature. In both cases the prompt is shown
+         // once, before the launcher; --no-launcher uses the system language.
+         String language = state.language();
+         if (language.isEmpty()) {
+            if (!flags.noLauncher()) {
+               Optional<String> chosen = LanguageDialog.show(LauncherLanguage.systemDefault().code());
+               if (chosen.isEmpty()) {
+                  return;
+               }
+               language = chosen.orElseThrow();
+               state = state.withLanguage(language);
+               LauncherText.setLanguage(language);
+               try {
+                  state.save(dataRoot);
+               } catch (IOException exception) {
+                  WindowsDialogs.showError(
+                     "Zombie Lane", LauncherText.format("error.saveLanguage", exception.getMessage())
+                  );
+                  return;
+               }
+            } else {
+               language = LauncherLanguage.systemDefault().code();
+            }
+         }
+         LauncherText.setLanguage(language);
+         GameLanguage.exposeProperty(language);
+         PreLauncherState runState = state;
+
          if (!flags.noLauncher()) {
             // Graphical launcher: one screen with mode, profile and options.
             try {
@@ -119,9 +148,9 @@ public final class IosMain {
          // nothing talks to a server, so the local profile folder name stays
          // as today. An explicit -Dzlport.account.id always wins.
          boolean serverMode = selection.map(PreLauncherDialog.Selection::mode)
-            .orElseGet(() -> modeOf(flags).orElse(state.mode())) == PreLauncherState.Mode.SERVER;
+            .orElseGet(() -> modeOf(flags).orElse(runState.mode())) == PreLauncherState.Mode.SERVER;
          String identityUser = selection.map(PreLauncherDialog.Selection::user)
-            .orElseGet(() -> userIdentity(flags, state));
+            .orElseGet(() -> userIdentity(flags, runState));
          String selectedAccountId = selection.map(PreLauncherDialog.Selection::accountId).orElse(null);
          String accountId = selectedAccountId;
          if (accountId == null) {
@@ -164,6 +193,17 @@ public final class IosMain {
                System.exit(1);
                return;
             }
+         }
+
+         // Apply the launcher language to the selected profile before the game
+         // reads settings. A new profile has no settings record yet: the
+         // zlport.language property lets Game.loadSettings() create a valid
+         // full record instead of writing a one-byte file here.
+         try {
+            GameLanguage.apply(runtimeDir, language);
+         } catch (IOException | RuntimeException exception) {
+            LOG.log(java.lang.System.Logger.Level.WARNING,
+               "No se pudo aplicar el idioma al perfil; se usará la propiedad del juego", exception);
          }
 
          // Local profiles are only injected as neighbors in LOCAL mode: with a
@@ -245,6 +285,10 @@ public final class IosMain {
             System.clearProperty(CUSTOM_MISSIONS_CACHE_PROPERTY);
             // Copiar las acciones antes de borrar el directorio temporal del save.
             SessionReport.capture(reportSession);
+            // Read the language before the server-save directory is deleted, so
+            // a change made in the in-game options survives the session.
+            syncLanguage(dataRoot, runtimeDir);
+            GameLanguage.clearProperty();
             if (serverSave != null) {
                try {
                   ServerSaveSync.upload(serverSave);
@@ -376,7 +420,7 @@ public final class IosMain {
          }
       }
       String user = flags.user().isPresent() ? flags.user().orElseThrow() : state.rememberUser() ? state.user() : "";
-      return PreLauncherState.of(mode, host, port, user, state.rememberUser(), state.lastProfile(), state.devMissions());
+      return PreLauncherState.of(mode, host, port, user, state.rememberUser(), state.lastProfile(), state.devMissions(), state.language());
    }
 
    /** Applies the launcher-screen choice to startup: server connection or network blocking. */
@@ -426,6 +470,26 @@ public final class IosMain {
       }
       String fileName = dataDir.getFileName() == null ? "" : dataDir.getFileName().toString();
       return fileName.matches("\\d{15}") ? fileName : null;
+   }
+
+   /** Copies the language left by the game in settings_data back to launcher.properties. */
+   private static void syncLanguage(Path dataRoot, Path runtimeDir) {
+      try {
+         Optional<String> gameLanguage = GameLanguage.read(runtimeDir);
+         if (gameLanguage.isEmpty()) {
+            return;
+         }
+         String language = gameLanguage.orElseThrow();
+         PreLauncherState current = PreLauncherState.load(dataRoot);
+         if (language.equals(current.language())) {
+            return;
+         }
+         current.withLanguage(language).save(dataRoot);
+         LOG.log(java.lang.System.Logger.Level.INFO, "Idioma del juego sincronizado con el lanzador: " + language);
+      } catch (IOException | RuntimeException exception) {
+         LOG.log(java.lang.System.Logger.Level.WARNING,
+            "No se pudo sincronizar el idioma del juego con el lanzador", exception);
+      }
    }
 
    /** Same as applySelection but resolving the connection from flags, state and property (no dialog). */

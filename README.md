@@ -68,10 +68,11 @@ The build:
 
 Verified on 2026-10-23 on Windows with Temurin 25.0.4.1 and the bundled Java 21.0.8 runtime:
 
-- The build compiles 61 classes.
-- The compiled class set contains the `v0.1-alpha` classes plus the launcher-validation inner class `PreLauncherDialog$FieldFilter`. `PreLauncherDialog` and `ServerConnection` include the validator changes; the intended release stubs are `zlport.dev.DevMode` and `zlport.dev.LauncherDevOptions`.
+- The build compiles 66 classes.
+- The compiled class set contains the `v0.1-alpha` classes, the launcher-validation inner class `PreLauncherDialog$FieldFilter`, and the `0.1.1` language classes (`LauncherLanguage`, `LauncherLanguage$Language`, `LauncherText`, `LanguageDialog`, `GameLanguage`). `PreLauncherDialog` and `ServerConnection` include the validator and localization changes; the intended release stubs are `zlport.dev.DevMode` and `zlport.dev.LauncherDevOptions`.
 - Common files under `runtime`, `lib`, and `game-assets-ios` are byte-identical to `v0.1-alpha`.
 - The headless smoke test exits 0 and does not print the `[dev]` banner.
+- The `0.1.1` language harness passes 38 checks (catalogue, state migration, byte-preserving settings update, missing-record behavior and localized validators), and the validator harness passes 13 checks.
 - The assembled folder and zip pass the release allowlist and sanitization checks.
 
 The `0.1.1` package does not include `mission-backups` or three stale root files that existed only in the `0.1` output (`0`, `1.png`, `2.png`). Those files are not part of the canonical asset tree.
@@ -80,7 +81,9 @@ The `0.1.1` package does not include `mission-backups` or three stale root files
 
 `0.1.1` is the first release assembled from the sanitized public tree. It fixes the player-edition build (no development hooks) and replaces the previous all-source compile with the explicit client class list.
 
-The remaining launcher fix planned for the final `0.1.1` release is additional languages. Field validation is included; the loading-screen crash is still under investigation.
+It also adds a local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included. The loading-screen crash is still under investigation.
+
+See `docs/language.md` and `docs/release-0.1.1.md` for the implementation and release details.
 
 ## Run
 

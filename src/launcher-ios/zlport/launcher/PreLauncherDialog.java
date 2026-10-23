@@ -174,11 +174,11 @@ public final class PreLauncherDialog {
       this.updateProfileVisibility();
 
       JPanel buttons = new JPanel();
-      JButton play = new JButton("Jugar");
+      JButton play = new JButton(LauncherText.get("button.play"));
       play.addActionListener(action -> this.play());
-      JButton cancel = new JButton("Cancelar");
+      JButton cancel = new JButton(LauncherText.get("button.cancel"));
       cancel.addActionListener(action -> this.cancel());
-      JButton privacy = new JButton("Privacidad...");
+      JButton privacy = new JButton(LauncherText.get("button.privacy"));
       privacy.addActionListener(action -> AlphaConsent.showDialog(this.dataRoot));
       this.dialog.getRootPane().setDefaultButton(play);
       buttons.add(play);
@@ -213,7 +213,7 @@ public final class PreLauncherDialog {
 
    private int buildProfileSection(JPanel content, int row, List<LocalProfiles.ProfileInfo> profiles) {
       JPanel section = new JPanel(new GridBagLayout());
-      this.profileTitleText = "Perfil local";
+      this.profileTitleText = LauncherText.get("section.profile");
       javax.swing.border.TitledBorder titled =
          BorderFactory.createTitledBorder(this.profileTitleText);
       section.setBorder(titled);
@@ -245,7 +245,7 @@ public final class PreLauncherDialog {
 
       c = newSectionConstraints();
       c.gridx = 1;
-      JButton create = new JButton("Crear perfil nuevo...");
+      JButton create = new JButton(LauncherText.get("button.createProfile"));
       create.addActionListener(action -> this.createProfile());
       section.add(create, c);
 
@@ -255,11 +255,11 @@ public final class PreLauncherDialog {
 
    private int buildConnectionSection(JPanel content, int row) {
       JPanel section = new JPanel(new GridBagLayout());
-      section.setBorder(BorderFactory.createTitledBorder("Conexión"));
+      section.setBorder(BorderFactory.createTitledBorder(LauncherText.get("section.connection")));
 
       GridBagConstraints c = newSectionConstraints();
-      this.localMode = new JRadioButton("Local (sin red)", this.seed.mode() == PreLauncherState.Mode.LOCAL);
-      this.serverMode = new JRadioButton("Servidor", this.seed.mode() == PreLauncherState.Mode.SERVER);
+      this.localMode = new JRadioButton(LauncherText.get("mode.local"), this.seed.mode() == PreLauncherState.Mode.LOCAL);
+      this.serverMode = new JRadioButton(LauncherText.get("mode.server"), this.seed.mode() == PreLauncherState.Mode.SERVER);
       javax.swing.ButtonGroup modes = new javax.swing.ButtonGroup();
       modes.add(this.localMode);
       modes.add(this.serverMode);
@@ -291,21 +291,21 @@ public final class PreLauncherDialog {
       JPanel panel = new JPanel(new GridBagLayout());
       GridBagConstraints c = newSectionConstraints();
 
-      panel.add(new JLabel("Servidor:"), c);
+      panel.add(new JLabel(LauncherText.get("label.server")), c);
       c = this.fieldCell(c);
       this.hostField = new JTextField(this.seed.host());
       this.limitLength(this.hostField, ServerConnection.MAX_HOST_LENGTH);
       panel.add(this.hostField, c);
 
       c = this.nextRow(c);
-      panel.add(new JLabel("Puerto:"), c);
+      panel.add(new JLabel(LauncherText.get("label.port")), c);
       c = this.fieldCell(c);
       this.portField = new JTextField(String.valueOf(this.seed.port()));
       this.integerField(this.portField, MAX_PORT_FIELD_LENGTH);
       panel.add(this.portField, c);
 
       c = this.nextRow(c);
-      panel.add(new JLabel("Usuario:"), c);
+      panel.add(new JLabel(LauncherText.get("label.user")), c);
       c = this.fieldCell(c);
       this.userField = new JTextField(this.seed.rememberUser() ? this.seed.user() : "");
       this.userField.setName("serverUsername");
@@ -313,23 +313,23 @@ public final class PreLauncherDialog {
       panel.add(this.userField, c);
 
       c = this.nextRow(c);
-      panel.add(new JLabel("Contraseña:"), c);
+      panel.add(new JLabel(LauncherText.get("label.password")), c);
       c = this.fieldCell(c);
       this.passwordField = new JPasswordField();
       this.passwordField.setName("serverPassword");
       this.limitLength(this.passwordField, MAX_PASSWORD_LENGTH);
       panel.add(this.passwordField, c);
       c = nextCell(c);
-      this.registerAccount = new JCheckBox("Crear cuenta nueva");
+      this.registerAccount = new JCheckBox(LauncherText.get("check.register"));
       panel.add(this.registerAccount, c);
 
       c = this.nextRow(c);
-      this.rememberUser = new JCheckBox("Recordar usuario");
+      this.rememberUser = new JCheckBox(LauncherText.get("check.rememberUser"));
       this.rememberUser.setSelected(this.seed.rememberUser());
       panel.add(this.rememberUser, c);
 
       c = this.nextRow(c);
-      JButton probeButton = new JButton("Probar conexión");
+      JButton probeButton = new JButton(LauncherText.get("button.probe"));
       probeButton.addActionListener(action -> this.probeConnection());
       panel.add(probeButton, c);
       c = nextCell(c);
@@ -342,10 +342,7 @@ public final class PreLauncherDialog {
       c.gridwidth = GridBagConstraints.REMAINDER;
       c.weightx = 1.0;
       c.fill = GridBagConstraints.HORIZONTAL;
-      JLabel warning = new JLabel(
-         "<html>Crea una cuenta o inicia sesión. La contraseña se guarda en el servidor como hash PBKDF2, nunca en este equipo.<br>"
-          + "HTTP no cifra la conexión: utiliza solo en esta máquina o una red local de confianza.</html>"
-      );
+      JLabel warning = new JLabel(LauncherText.get("warning.account"));
       warning.setFont(warning.getFont().deriveFont(Font.PLAIN, 11.0F));
       panel.add(warning, c);
       return panel;
@@ -368,16 +365,16 @@ public final class PreLauncherDialog {
 
    private int buildGameSection(JPanel content, int row) {
       JPanel section = new JPanel(new GridBagLayout());
-      section.setBorder(BorderFactory.createTitledBorder("Opciones del juego"));
+      section.setBorder(BorderFactory.createTitledBorder(LauncherText.get("section.game")));
 
       GridBagConstraints c = newSectionConstraints();
-      this.fullscreenBox = new JCheckBox("Pantalla completa");
+      this.fullscreenBox = new JCheckBox(LauncherText.get("check.fullscreen"));
       section.add(this.fullscreenBox, c);
-      this.maximizedBox = new JCheckBox("Maximizada");
+      this.maximizedBox = new JCheckBox(LauncherText.get("check.maximized"));
       section.add(this.maximizedBox, nextCell(c));
 
       c = this.nextRow(c);
-      section.add(new JLabel("Tamaño de la ventana (px):"), c);
+      section.add(new JLabel(LauncherText.get("label.windowSize")), c);
       c = this.fieldCell(c);
       this.widthField = new JTextField(4);
       this.heightField = new JTextField(4);
@@ -390,13 +387,13 @@ public final class PreLauncherDialog {
       section.add(size, c);
 
       c = this.nextRow(c);
-      this.pauseFocusBox = new JCheckBox("Pausar al perder el foco");
+      this.pauseFocusBox = new JCheckBox(LauncherText.get("check.pauseFocus"));
       section.add(this.pauseFocusBox, c);
-      this.audioBox = new JCheckBox("Sonido");
+      this.audioBox = new JCheckBox(LauncherText.get("check.audio"));
       section.add(this.audioBox, nextCell(c));
 
       c = this.nextRow(c);
-      section.add(new JLabel("Zoom por paso de rueda (1.01–1.5):"), c);
+      section.add(new JLabel(LauncherText.get("label.zoom")), c);
       c = this.fieldCell(c);
       this.zoomField = new JTextField(4);
       this.decimalField(this.zoomField, MAX_ZOOM_FIELD_LENGTH);
@@ -409,17 +406,17 @@ public final class PreLauncherDialog {
       this.integerField(this.rechargeField, MAX_RECHARGE_FIELD_LENGTH);
       this.decimalField(this.spawnField, MAX_SPAWN_FIELD_LENGTH);
       this.integerField(this.intervalField, MAX_INTERVAL_FIELD_LENGTH);
-      section.add(new JLabel("Energía: segundos por punto (1–3600):"), c);
+      section.add(new JLabel(LauncherText.get("label.recharge")), c);
       c = this.fieldCell(c);
       section.add(this.rechargeField, c);
 
       c = this.nextRow(c);
-      section.add(new JLabel("Zombis: multiplicador (1.0–5.0):"), c);
+      section.add(new JLabel(LauncherText.get("label.spawn")), c);
       c = this.fieldCell(c);
       section.add(this.spawnField, c);
 
       c = this.nextRow(c);
-      section.add(new JLabel("Vecinos: minutos (1–1440):"), c);
+      section.add(new JLabel(LauncherText.get("label.neighbor")), c);
       c = this.fieldCell(c);
       section.add(this.intervalField, c);
 
@@ -428,9 +425,9 @@ public final class PreLauncherDialog {
    }
 
    private int buildAdvancedSection(JPanel content, int row) {
-      JCheckBox advancedToggle = new JCheckBox("Opciones avanzadas");
+      JCheckBox advancedToggle = new JCheckBox(LauncherText.get("check.advanced"));
       JPanel advanced = new JPanel(new GridBagLayout());
-      advanced.setBorder(BorderFactory.createTitledBorder("Avanzado"));
+      advanced.setBorder(BorderFactory.createTitledBorder(LauncherText.get("section.advanced")));
       advanced.setVisible(false);
       advancedToggle.addItemListener(event -> {
          advanced.setVisible(event.getStateChange() == ItemEvent.SELECTED);
@@ -438,13 +435,13 @@ public final class PreLauncherDialog {
       });
 
       GridBagConstraints c = newSectionConstraints();
-      advanced.add(new JLabel("Nivel del log (diagnóstico):"), c);
+      advanced.add(new JLabel(LauncherText.get("label.logLevel")), c);
       c = this.fieldCell(c);
       this.levelBox = new JComboBox<>(new String[] { "SEVERE", "WARNING", "INFO", "CONFIG", "FINE", "FINER", "FINEST", "ALL", "OFF" });
       advanced.add(this.levelBox, c);
 
       c = this.nextRow(c);
-      this.glDebugBox = new JCheckBox("Depuración GL (comprueba glGetError en cada llamada)");
+      this.glDebugBox = new JCheckBox(LauncherText.get("check.glDebug"));
       advanced.add(this.glDebugBox, c);
 
       // Dev editions only: the src-release body adds nothing, so the player
@@ -488,12 +485,16 @@ public final class PreLauncherDialog {
    }
 
    private void createProfile() {
-      String name = JOptionPane.showInputDialog(this.dialog, "Nombre del perfil:", "Crear perfil nuevo", JOptionPane.PLAIN_MESSAGE);
+      String name = JOptionPane.showInputDialog(
+         this.dialog, LauncherText.get("profile.namePrompt"), LauncherText.get("profile.createTitle"), JOptionPane.PLAIN_MESSAGE
+      );
       if (name == null) {
          return;
       }
       if (name.strip().isEmpty()) {
-         JOptionPane.showMessageDialog(this.dialog, "Escribe un nombre para el perfil.", "Zombie Lane", JOptionPane.INFORMATION_MESSAGE);
+         JOptionPane.showMessageDialog(
+            this.dialog, LauncherText.get("profile.nameRequired"), "Zombie Lane", JOptionPane.INFORMATION_MESSAGE
+         );
          return;
       }
       try {
@@ -519,7 +520,7 @@ public final class PreLauncherDialog {
          }
       } catch (IOException | RuntimeException exception) {
          JOptionPane.showMessageDialog(
-            this.dialog, "No se pudo crear el perfil: " + exception.getMessage(), "Zombie Lane", JOptionPane.ERROR_MESSAGE
+            this.dialog, LauncherText.format("profile.createFailed", exception.getMessage()), "Zombie Lane", JOptionPane.ERROR_MESSAGE
          );
       }
    }
@@ -662,19 +663,19 @@ public final class PreLauncherDialog {
          }
          // In server mode the typed user IS the account identity: required,
          // with a readable minimum length.
-         if (f.user().strip().isEmpty()) {
-            errors.add("Escribe el usuario de tu cuenta del servidor.");
-         }
-         String userError = ServerConnection.validateUser(f.user());
-         if (userError != null) {
-            errors.add(userError);
-         }
-         if (userError == null && !f.user().strip().isEmpty() && f.user().strip().length() < MIN_USER_LENGTH) {
-            errors.add("El usuario debe tener al menos " + MIN_USER_LENGTH + " caracteres.");
-         }
-         if (f.password().length() < MIN_PASSWORD_LENGTH || f.password().length() > MAX_PASSWORD_LENGTH) {
-               errors.add("La contraseña debe tener entre " + MIN_PASSWORD_LENGTH + " y " + MAX_PASSWORD_LENGTH + " caracteres.");
-            }
+          if (f.user().strip().isEmpty()) {
+             errors.add(LauncherText.get("error.userRequired"));
+          }
+          String userError = ServerConnection.validateUser(f.user());
+          if (userError != null) {
+             errors.add(userError);
+          }
+          if (userError == null && !f.user().strip().isEmpty() && f.user().strip().length() < MIN_USER_LENGTH) {
+             errors.add(LauncherText.format("error.userMin", MIN_USER_LENGTH));
+          }
+          if (f.password().length() < MIN_PASSWORD_LENGTH || f.password().length() > MAX_PASSWORD_LENGTH) {
+             errors.add(LauncherText.format("error.passwordLength", MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH));
+          }
       }
 
       String windowError = windowSizeError(f.width(), f.height());
@@ -731,7 +732,9 @@ public final class PreLauncherDialog {
          }
       } catch (NumberFormatException ignored) {
       }
-      return "El zoom por paso de rueda '" + text + "' no es válido: de " + Settings.MIN_WHEEL_STEP + " a " + Settings.MAX_WHEEL_STEP;
+      return LauncherText.format(
+         "error.zoom", text, Settings.MIN_WHEEL_STEP, Settings.MAX_WHEEL_STEP
+      );
    }
 
    private static String levelError(String text) {
@@ -740,17 +743,19 @@ public final class PreLauncherDialog {
          java.util.logging.Level.parse(value);
          return null;
       } catch (IllegalArgumentException ignored) {
-         return "El nivel del log '" + text + "' no es válido: SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL u OFF";
+         return LauncherText.format("error.level", text);
       }
    }
 
    private static String rechargeError(String text) {
-      String error = "La energía (segundos por punto) '" + text + "' no es válida: de 1 a " + Settings.MAX_ENERGY_RECHARGE;
+      String error = LauncherText.format("error.recharge", text, Settings.MAX_ENERGY_RECHARGE);
       return boundedInteger(text, 1, Settings.MAX_ENERGY_RECHARGE) == null ? error : null;
    }
 
    private static String spawnError(String text) {
-      String error = "El multiplicador de zombis '" + text + "' no es válido: de " + Settings.MIN_SPAWN_MULTIPLIER + " a " + Settings.MAX_SPAWN_MULTIPLIER;
+      String error = LauncherText.format(
+         "error.spawn", text, Settings.MIN_SPAWN_MULTIPLIER, Settings.MAX_SPAWN_MULTIPLIER
+      );
       String value = text == null ? "" : text.strip().replace(',', '.');
       try {
          float multiplier = Float.parseFloat(value);
@@ -763,12 +768,12 @@ public final class PreLauncherDialog {
    }
 
    private static String intervalError(String text) {
-      String error = "Los minutos de vecinos '" + text + "' no son válidos: de 1 a " + Settings.MAX_NEIGHBOR_INTERVAL;
+      String error = LauncherText.format("error.neighbor", text, Settings.MAX_NEIGHBOR_INTERVAL);
       return boundedInteger(text, 1, Settings.MAX_NEIGHBOR_INTERVAL) == null ? error : null;
    }
 
    private static String portError(String portText) {
-      String error = "El puerto '" + portText + "' no es válido: debe ser un entero de " + ServerConnection.MIN_PORT + " a " + ServerConnection.MAX_PORT;
+      String error = LauncherText.format("error.port", portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT);
       return boundedInteger(portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT) == null ? error : null;
    }
 
@@ -776,10 +781,10 @@ public final class PreLauncherDialog {
       Integer width = dimension(widthText, MIN_WINDOW_WIDTH);
       Integer height = dimension(heightText, MIN_WINDOW_HEIGHT);
       if (width == null) {
-         return "El ancho de la ventana '" + widthText + "' no es válido: entero de " + MIN_WINDOW_WIDTH + " a " + MAX_WINDOW_DIMENSION;
+         return LauncherText.format("error.width", widthText, MIN_WINDOW_WIDTH, MAX_WINDOW_DIMENSION);
       }
       if (height == null) {
-         return "El alto de la ventana '" + heightText + "' no es válido: entero de " + MIN_WINDOW_HEIGHT + " a " + MAX_WINDOW_DIMENSION;
+         return LauncherText.format("error.height", heightText, MIN_WINDOW_HEIGHT, MAX_WINDOW_DIMENSION);
       }
       return null;
    }
@@ -792,7 +797,9 @@ public final class PreLauncherDialog {
       Fields f = this.collectFields();
       List<String> errors = validateFields(f);
       if (!errors.isEmpty()) {
-         JOptionPane.showMessageDialog(this.dialog, String.join("\n", errors), "Zombie Lane: opciones inválidas", JOptionPane.ERROR_MESSAGE);
+         JOptionPane.showMessageDialog(
+            this.dialog, String.join("\n", errors), LauncherText.get("error.invalidOptionsTitle"), JOptionPane.ERROR_MESSAGE
+         );
          return;
       }
 
@@ -801,10 +808,12 @@ public final class PreLauncherDialog {
       LocalProfiles.ProfileInfo profile = null;
       if (this.pickProfile && mode == PreLauncherState.Mode.LOCAL) {
          Object item = this.profileBox.getSelectedItem();
-         if (!(item instanceof LocalProfiles.ProfileInfo chosen)) {
-            JOptionPane.showMessageDialog(this.dialog, "No hay perfiles: crea uno nuevo para empezar.", "Zombie Lane", JOptionPane.WARNING_MESSAGE);
-            return;
-         }
+          if (!(item instanceof LocalProfiles.ProfileInfo chosen)) {
+             JOptionPane.showMessageDialog(
+                this.dialog, LauncherText.get("profile.noProfiles"), "Zombie Lane", JOptionPane.WARNING_MESSAGE
+             );
+             return;
+          }
          profile = chosen;
       }
       ServerConnection server = null;
@@ -817,12 +826,12 @@ public final class PreLauncherDialog {
          }
          // Confirm that the selected server responds before sending credentials.
          String unavailable = serverGateMessage(server);
-         if (unavailable != null) {
-            JOptionPane.showMessageDialog(
-               this.dialog, unavailable, "Zombie Lane: servidor no disponible", JOptionPane.ERROR_MESSAGE
-            );
-            return;
-         }
+          if (unavailable != null) {
+             JOptionPane.showMessageDialog(
+                this.dialog, unavailable, LauncherText.get("error.serverUnavailableTitle"), JOptionPane.ERROR_MESSAGE
+             );
+             return;
+          }
       }
       String authenticatedAccountId = null;
       if (mode == PreLauncherState.Mode.SERVER && server != null) {
@@ -831,10 +840,12 @@ public final class PreLauncherDialog {
          java.util.Arrays.fill(enteredPassword, '\0');
          char[] loginPassword = PendingCredentials.take();
          ServerConnection.AuthResult auth = server.authenticate(f.user().strip(), loginPassword, this.registerAccount.isSelected());
-         if (!auth.ok()) {
-            JOptionPane.showMessageDialog(this.dialog, auth.detail(), "No se pudo iniciar sesión", JOptionPane.ERROR_MESSAGE);
-            return;
-         }
+          if (!auth.ok()) {
+             JOptionPane.showMessageDialog(
+                this.dialog, auth.detail(), LauncherText.get("error.loginTitle"), JOptionPane.ERROR_MESSAGE
+             );
+             return;
+          }
          authenticatedAccountId = auth.accountId();
       }
       // The typed user names the server account; it is only persisted when
@@ -851,18 +862,22 @@ public final class PreLauncherDialog {
          new Launcher.WindowState(this.currentSettings.x(), this.currentSettings.y(), width, height, f.maximized(), f.fullscreen());
 
       try {
-         if (profile != null) {
-            Settings.saveLauncherOptions(profile.directory(), window, optionValues(f));
-            PreLauncherState.of(mode, host, port, user, this.rememberUser.isSelected(), profile.id(), devMissions).save(this.dataRoot);
-            this.result = Optional.of(new Selection(profile.directory(), profile, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
-         } else {
-            Settings.saveLauncherOptions(this.dataRoot, window, optionValues(f));
-            PreLauncherState.of(mode, host, port, user, this.rememberUser.isSelected(), this.seed.lastProfile(), devMissions).save(this.dataRoot);
-            this.result = Optional.of(new Selection(this.dataRoot, null, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
-         }
+          if (profile != null) {
+             Settings.saveLauncherOptions(profile.directory(), window, optionValues(f));
+             PreLauncherState.of(
+                mode, host, port, user, this.rememberUser.isSelected(), profile.id(), devMissions, LauncherText.currentCode()
+             ).save(this.dataRoot);
+             this.result = Optional.of(new Selection(profile.directory(), profile, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
+          } else {
+             Settings.saveLauncherOptions(this.dataRoot, window, optionValues(f));
+             PreLauncherState.of(
+                mode, host, port, user, this.rememberUser.isSelected(), this.seed.lastProfile(), devMissions, LauncherText.currentCode()
+             ).save(this.dataRoot);
+             this.result = Optional.of(new Selection(this.dataRoot, null, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
+          }
       } catch (IOException | RuntimeException exception) {
          JOptionPane.showMessageDialog(
-            this.dialog, "No se pudieron guardar las opciones: " + exception.getMessage(), "Zombie Lane", JOptionPane.ERROR_MESSAGE
+            this.dialog, LauncherText.format("error.saveOptions", exception.getMessage()), "Zombie Lane", JOptionPane.ERROR_MESSAGE
          );
          return;
       }
@@ -880,8 +895,7 @@ public final class PreLauncherDialog {
       if (probe.ok()) {
          return null;
       }
-      return "No se pudo conectar con el servidor " + server.host() + ":" + server.port() + " (" + probe.detail() + ").\n"
-         + "Sin conexión con el servidor no se puede jugar en línea.";
+      return LauncherText.format("error.serverGate", server.host(), server.port(), probe.detail());
    }
 
    private void probeConnection() {
@@ -904,16 +918,16 @@ public final class PreLauncherDialog {
          return;
       }
 
-      this.probeResult.setText("Comprobando " + server.healthUrl() + " ...");
+      this.probeResult.setText(LauncherText.format("probe.checking", server.healthUrl()));
       Thread thread = new Thread(() -> {
          ServerConnection.Probe probe = server.probe();
          SwingUtilities.invokeLater(() -> {
             if (probe.ok()) {
-               this.probeResult.setText("OK: el servidor responde en " + server.healthUrl());
+               this.probeResult.setText(LauncherText.format("probe.ok", server.healthUrl()));
             } else if (probe.detail().startsWith("HTTP ") || probe.detail().startsWith("port ")) {
                this.probeResult.setText(probe.detail());
             } else {
-               this.probeResult.setText("Sin respuesta del servidor (" + probe.detail() + ")");
+               this.probeResult.setText(LauncherText.format("probe.noResponse", probe.detail()));
             }
          });
       }, "zl-lanzador-comprueba");
