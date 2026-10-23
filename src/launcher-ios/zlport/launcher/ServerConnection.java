@@ -35,6 +35,8 @@ public record ServerConnection(String host, int port) {
    public static final int MAX_PORT = 65535;
    /** User name length limit; the field is optional, kept for future authentication. */
    public static final int MAX_USER_LENGTH = 24;
+   /** Host name length limit (DNS names are at most 253 characters). */
+   public static final int MAX_HOST_LENGTH = 255;
    static final Duration PROBE_TIMEOUT = Duration.ofSeconds(3);
    static final String GAME_BASE = "/dead/";
    static final String HEALTH_PATH = "/health";
@@ -80,6 +82,9 @@ public record ServerConnection(String host, int port) {
       String host = normalizeHost(raw);
       if (host.isEmpty()) {
          return "Escribe el host o la IP del servidor.";
+      }
+      if (host.length() > MAX_HOST_LENGTH) {
+         return "El host no puede pasar de " + MAX_HOST_LENGTH + " caracteres.";
       }
       if (host.indexOf(':') >= 0) {
          return "Escribe el puerto en su campo; IPv6 no está permitido en este campo.";

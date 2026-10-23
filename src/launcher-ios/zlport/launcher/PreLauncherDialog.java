@@ -30,6 +30,12 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 /**
  * Pre-game graphical launcher: one screen with the mode (local / server), the
@@ -49,6 +55,13 @@ public final class PreLauncherDialog {
    private static final int MIN_WINDOW_WIDTH = 640;
    private static final int MIN_WINDOW_HEIGHT = 360;
    private static final int MAX_WINDOW_DIMENSION = 16384;
+   private static final int MAX_PORT_FIELD_LENGTH = 5;
+   private static final int MAX_WINDOW_FIELD_LENGTH = 5;
+   private static final int MAX_ZOOM_FIELD_LENGTH = 4;
+   private static final int MAX_RECHARGE_FIELD_LENGTH = 4;
+   private static final int MAX_SPAWN_FIELD_LENGTH = 4;
+   private static final int MAX_INTERVAL_FIELD_LENGTH = 4;
+   private static final int MAX_PASSWORD_LENGTH = 128;
 
    /** Dialog outcome: chosen profile (null when the picker is not in use) and confirmed connection. */
    public record Selection(
@@ -124,6 +137,7 @@ public final class PreLauncherDialog {
    private JTextField rechargeField;
    private JTextField spawnField;
    private JTextField intervalField;
+   private JButton play;
    private Settings currentSettings = Settings.defaults();
 
    private PreLauncherDialog(Path dataRoot, PreLauncherState seed, boolean pickProfile) {
@@ -163,17 +177,19 @@ public final class PreLauncherDialog {
       this.updateProfileVisibility();
 
       JPanel buttons = new JPanel();
-      JButton play = new JButton("Jugar");
-      play.addActionListener(action -> this.play());
+      this.play = new JButton("Jugar");
+      this.play.addActionListener(action -> this.play());
       JButton cancel = new JButton("Cancelar");
       cancel.addActionListener(action -> this.cancel());
       JButton privacy = new JButton("Privacidad...");
       privacy.addActionListener(action -> AlphaConsent.showDialog(this.dataRoot));
-      this.dialog.getRootPane().setDefaultButton(play);
-      buttons.add(play);
+      this.dialog.getRootPane().setDefaultButton(this.play);
+      buttons.add(this.play);
       buttons.add(cancel);
       buttons.add(privacy);
       content.add(buttons, sectionConstraints(row));
+      this.installValidationListeners();
+      this.refreshValidation();
 
       this.dialog.setContentPane(content);
       this.dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -283,12 +299,14 @@ public final class PreLauncherDialog {
       panel.add(new JLabel("Servidor:"), c);
       c = this.fieldCell(c);
       this.hostField = new JTextField(this.seed.host());
+      this.limitLength(this.hostField, ServerConnection.MAX_HOST_LENGTH);
       panel.add(this.hostField, c);
 
       c = this.nextRow(c);
       panel.add(new JLabel("Puerto:"), c);
       c = this.fieldCell(c);
       this.portField = new JTextField(String.valueOf(this.seed.port()));
+      this.integerField(this.portField, MAX_PORT_FIELD_LENGTH);
       panel.add(this.portField, c);
 
       c = this.nextRow(c);
@@ -296,6 +314,7 @@ public final class PreLauncherDialog {
       c = this.fieldCell(c);
       this.userField = new JTextField(this.seed.rememberUser() ? this.seed.user() : "");
       this.userField.setName("serverUsername");
+      this.limitLength(this.userField, ServerConnection.MAX_USER_LENGTH);
       panel.add(this.userField, c);
 
       c = this.nextRow(c);
@@ -303,6 +322,7 @@ public final class PreLauncherDialog {
       c = this.fieldCell(c);
       this.passwordField = new JPasswordField();
       this.passwordField.setName("serverPassword");
+      this.limitLength(this.passwordField, MAX_PASSWORD_LENGTH);
       panel.add(this.passwordField, c);
       c = nextCell(c);
       this.registerAccount = new JCheckBox("Crear cuenta nueva");
@@ -366,6 +386,8 @@ public final class PreLauncherDialog {
       c = this.fieldCell(c);
       this.widthField = new JTextField(4);
       this.heightField = new JTextField(4);
+      this.integerField(this.widthField, MAX_WINDOW_FIELD_LENGTH);
+      this.integerField(this.heightField, MAX_WINDOW_FIELD_LENGTH);
       javax.swing.JPanel size = new javax.swing.JPanel();
       size.add(this.widthField);
       size.add(new JLabel("x"));
@@ -382,12 +404,16 @@ public final class PreLauncherDialog {
       section.add(new JLabel("Zoom por paso de rueda (1.01–1.5):"), c);
       c = this.fieldCell(c);
       this.zoomField = new JTextField(4);
+      this.decimalField(this.zoomField, MAX_ZOOM_FIELD_LENGTH);
       section.add(this.zoomField, c);
 
       c = this.nextRow(c);
       this.rechargeField = new JTextField(4);
       this.spawnField = new JTextField(4);
       this.intervalField = new JTextField(4);
+      this.integerField(this.rechargeField, MAX_RECHARGE_FIELD_LENGTH);
+      this.decimalField(this.spawnField, MAX_SPAWN_FIELD_LENGTH);
+      this.integerField(this.intervalField, MAX_INTERVAL_FIELD_LENGTH);
       section.add(new JLabel("Energía: segundos por punto (1–3600):"), c);
       c = this.fieldCell(c);
       section.add(this.rechargeField, c);
@@ -536,6 +562,91 @@ public final class PreLauncherDialog {
       this.rememberUser.setEnabled(enabled);
    }
 
+   private void installValidationListeners() {
+      DocumentListener documentListener = new DocumentListener() {
+         @Override
+         public void insertUpdate(DocumentEvent event) {
+            refreshValidation();
+         }
+
+         @Override
+         public void removeUpdate(DocumentEvent event) {
+            refreshValidation();
+         }
+
+         @Override
+         public void changedUpdate(DocumentEvent event) {
+            refreshValidation();
+         }
+      };
+      JTextField[] textFields = {
+         this.hostField, this.portField, this.userField, this.passwordField,
+         this.widthField, this.heightField, this.zoomField,
+         this.rechargeField, this.spawnField, this.intervalField
+      };
+      for (JTextField field : textFields) {
+         field.getDocument().addDocumentListener(documentListener);
+      }
+      java.awt.event.ActionListener actionListener = event -> this.refreshValidation();
+      this.localMode.addActionListener(actionListener);
+      this.serverMode.addActionListener(actionListener);
+      this.registerAccount.addActionListener(actionListener);
+      this.rememberUser.addActionListener(actionListener);
+      this.levelBox.addActionListener(actionListener);
+      if (this.profileBox != null) {
+         this.profileBox.addItemListener(event -> this.refreshValidation());
+      }
+   }
+
+   private void refreshValidation() {
+      if (this.play == null) {
+         return;
+      }
+      List<String> errors = validateFields(this.collectFields());
+      this.play.setEnabled(errors.isEmpty());
+      this.play.setToolTipText(errors.isEmpty() ? null : String.join(" | ", errors));
+   }
+
+   private void limitLength(JTextField field, int maxLength) {
+      AbstractDocument document = (AbstractDocument) field.getDocument();
+      document.setDocumentFilter(new FieldFilter(maxLength, null));
+   }
+
+   private void integerField(JTextField field, int maxLength) {
+      AbstractDocument document = (AbstractDocument) field.getDocument();
+      document.setDocumentFilter(new FieldFilter(maxLength, "\\d*"));
+   }
+
+   private void decimalField(JTextField field, int maxLength) {
+      AbstractDocument document = (AbstractDocument) field.getDocument();
+      document.setDocumentFilter(new FieldFilter(maxLength, "\\d*(?:[.,]\\d*)?"));
+   }
+
+   private static final class FieldFilter extends DocumentFilter {
+      private final int maxLength;
+      private final String pattern;
+
+      private FieldFilter(int maxLength, String pattern) {
+         this.maxLength = maxLength;
+         this.pattern = pattern;
+      }
+
+      @Override
+      public void insertString(FilterBypass filter, int offset, String text, AttributeSet attributes) throws BadLocationException {
+         this.replace(filter, offset, 0, text, attributes);
+      }
+
+      @Override
+      public void replace(FilterBypass filter, int offset, int length, String text, AttributeSet attributes) throws BadLocationException {
+         String current = filter.getDocument().getText(0, filter.getDocument().getLength());
+         String insertion = text == null ? "" : text;
+         String candidate = current.substring(0, offset) + insertion + current.substring(offset + length);
+         if (candidate.length() <= this.maxLength && (this.pattern == null || candidate.matches(this.pattern))) {
+            super.replace(filter, offset, length, text, attributes);
+         }
+      }
+   }
+
    private Fields collectFields() {
       return new Fields(
          this.serverMode.isSelected(),
@@ -611,8 +722,8 @@ public final class PreLauncherDialog {
          if (userError == null && !f.user().strip().isEmpty() && f.user().strip().length() < MIN_USER_LENGTH) {
             errors.add("El usuario debe tener al menos " + MIN_USER_LENGTH + " caracteres.");
          }
-         if (f.password().length() < MIN_PASSWORD_LENGTH || f.password().length() > 128) {
-               errors.add("La contraseña debe tener entre " + MIN_PASSWORD_LENGTH + " y 128 caracteres.");
+         if (f.password().length() < MIN_PASSWORD_LENGTH || f.password().length() > MAX_PASSWORD_LENGTH) {
+               errors.add("La contraseña debe tener entre " + MIN_PASSWORD_LENGTH + " y " + MAX_PASSWORD_LENGTH + " caracteres.");
             }
       }
 
@@ -648,8 +759,21 @@ public final class PreLauncherDialog {
       return errors;
    }
 
+   private static Integer boundedInteger(String text, int min, int max) {
+      String value = text == null ? "" : text.strip();
+      if (!value.matches("\\d{1,10}")) {
+         return null;
+      }
+      try {
+         int parsed = Integer.parseInt(value);
+         return parsed >= min && parsed <= max ? parsed : null;
+      } catch (NumberFormatException ignored) {
+         return null;
+      }
+   }
+
    private static String zoomError(String text) {
-      String value = text.strip().replace(',', '.');
+      String value = text == null ? "" : text.strip().replace(',', '.');
       try {
          float zoom = Float.parseFloat(value);
          if (!Float.isNaN(zoom) && !Float.isInfinite(zoom) && zoom >= Settings.MIN_WHEEL_STEP && zoom <= Settings.MAX_WHEEL_STEP) {
@@ -672,12 +796,7 @@ public final class PreLauncherDialog {
 
    private static String rechargeError(String text) {
       String error = "La energía (segundos por punto) '" + text + "' no es válida: de 1 a " + Settings.MAX_ENERGY_RECHARGE;
-      String value = text == null ? "" : text.strip();
-      if (!value.matches("\\d+")) {
-         return error;
-      }
-      int seconds = Integer.parseInt(value);
-      return seconds >= 1 && seconds <= Settings.MAX_ENERGY_RECHARGE ? null : error;
+      return boundedInteger(text, 1, Settings.MAX_ENERGY_RECHARGE) == null ? error : null;
    }
 
    private static String spawnError(String text) {
@@ -695,23 +814,12 @@ public final class PreLauncherDialog {
 
    private static String intervalError(String text) {
       String error = "Los minutos de vecinos '" + text + "' no son válidos: de 1 a " + Settings.MAX_NEIGHBOR_INTERVAL;
-      String value = text == null ? "" : text.strip();
-      if (!value.matches("\\d+")) {
-         return error;
-      }
-      int minutes = Integer.parseInt(value);
-      return minutes >= 1 && minutes <= Settings.MAX_NEIGHBOR_INTERVAL ? null : error;
+      return boundedInteger(text, 1, Settings.MAX_NEIGHBOR_INTERVAL) == null ? error : null;
    }
 
    private static String portError(String portText) {
-      if (!portText.strip().matches("\\d+")) {
-         return "El puerto '" + portText + "' no es válido: debe ser un entero de " + ServerConnection.MIN_PORT + " a " + ServerConnection.MAX_PORT;
-      }
-      int port = Integer.parseInt(portText.strip());
-      if (port < ServerConnection.MIN_PORT || port > ServerConnection.MAX_PORT) {
-         return "El puerto " + portText + " no es válido: debe ser un entero de " + ServerConnection.MIN_PORT + " a " + ServerConnection.MAX_PORT;
-      }
-      return null;
+      String error = "El puerto '" + portText + "' no es válido: debe ser un entero de " + ServerConnection.MIN_PORT + " a " + ServerConnection.MAX_PORT;
+      return boundedInteger(portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT) == null ? error : null;
    }
 
    private static String windowSizeError(String widthText, String heightText) {
@@ -727,12 +835,7 @@ public final class PreLauncherDialog {
    }
 
    private static Integer dimension(String text, int min) {
-      String value = text == null ? "" : text.strip();
-      if (!value.matches("\\d+")) {
-         return null;
-      }
-      int parsed = Integer.parseInt(value);
-      return parsed >= min && parsed <= MAX_WINDOW_DIMENSION ? parsed : null;
+      return boundedInteger(text, min, MAX_WINDOW_DIMENSION);
    }
 
    private void play() {
