@@ -1,6 +1,7 @@
 package com.dchoc.idead.player;
 
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 
@@ -32,7 +33,7 @@ public class DailyRewards {
             }
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("DailyRewards.load", exception);
       }
    }
 

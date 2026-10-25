@@ -9,6 +9,7 @@ import com.dchoc.menuobject.MenuObject;
 import com.dchoc.spriteobject.SpriteObject;
 import com.dchoc.toolkit.DChocByteArray;
 import com.dchoc.toolkit.IRenderingPlatform;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import java.io.EOFException;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import zlport.ios.Ios;
 import zlport.launcher.LauncherLanguage;
 
 public class Game implements FlowHandler {
+   private static final int VOLUME_SETTINGS_MARKER = 0x56;
    public static final boolean DEBUG_ZOOM = false;
    public static final int LANGUAGE_INDEX_ENGLISH = 0;
    public static final int LANGUAGE_INDEX_FRENCH = 1;
@@ -38,6 +40,8 @@ public class Game implements FlowHandler {
    private boolean mPauseEventScheduled;
    private boolean mSoundEffectsOn;
    private boolean mMusicOn;
+   private int mMusicVolume;
+   private int mSoundEffectsVolume;
    private boolean mCropsAndHarvestingOn;
    private boolean mNeighborActionsOn;
    private boolean mEnergyRefillOn;
@@ -196,6 +200,8 @@ public class Game implements FlowHandler {
       this.mShowIntro = !DeviceWrapper.isIOS3();
       this.mMusicOn = true;
       this.mSoundEffectsOn = true;
+      this.mMusicVolume = 100;
+      this.mSoundEffectsVolume = 100;
       this.mCropsAndHarvestingOn = true;
       this.mNeighborActionsOn = true;
       this.mEnergyRefillOn = true;
@@ -275,25 +281,28 @@ public class Game implements FlowHandler {
             this.mApplicationControl.setLanguage(this.mSelectedLanguage);
             this.mMusicOn = data.readBoolean();
             this.mSoundEffectsOn = data.readBoolean();
-            int music = this.mMusicOn ? 5 : 0;
-            int effects = this.mSoundEffectsOn ? 5 : 0;
-            if (Toolkit.getMusicVolume() != music) {
-               Toolkit.setMusicVolume(music);
-            }
-
-            if (Toolkit.getSoundEffectVolume() != effects) {
-               Toolkit.setSoundEffectVolume(effects);
-            }
-
             this.mShowIntro = data.readBoolean();
             this.mCropsAndHarvestingOn = data.readBoolean();
             this.mNeighborActionsOn = data.readBoolean();
             this.mEnergyRefillOn = data.readBoolean();
             this.mCrashed = data.readBoolean();
+            // Old records are zero-padded after the eight original settings bytes.
+            // The marker prevents treating that padding as a saved volume.
+            if (data.readUnsignedByte() == VOLUME_SETTINGS_MARKER) {
+               this.mMusicVolume = clampVolume(data.readUnsignedByte());
+               this.mSoundEffectsVolume = clampVolume(data.readUnsignedByte());
+            } else {
+               this.mMusicVolume = this.mMusicOn ? 100 : 0;
+               this.mSoundEffectsVolume = this.mSoundEffectsOn ? 100 : 0;
+            }
+            this.mMusicOn = this.mMusicVolume > 0;
+            this.mSoundEffectsOn = this.mSoundEffectsVolume > 0;
          } catch (EOFException exception) {
-            System.err.println(exception);
+            Sonda.probe("Game.load (game config)", exception);
          }
       }
+      Toolkit.setMusicVolume(this.mMusicVolume);
+      Toolkit.setSoundEffectVolume(this.mSoundEffectsVolume);
    }
 
    @Override
@@ -374,6 +383,18 @@ public class Game implements FlowHandler {
       return this.mMusicOn;
    }
 
+   public int getMusicVolume() {
+      return this.mMusicVolume;
+   }
+
+   public int getSoundEffectsVolume() {
+      return this.mSoundEffectsVolume;
+   }
+
+   private static int clampVolume(int volume) {
+      return Math.max(0, Math.min(100, volume));
+   }
+
    public boolean neighborActionsEnabled() {
       return this.mNeighborActionsOn;
    }
@@ -414,16 +435,14 @@ public class Game implements FlowHandler {
    private void saveSettings() {
       DChocByteArray data = DChocByteArray.createByteArrayForWriting();
       data.writeByte(this.mSelectedLanguage);
-      data.writeBoolean(this.mMusicOn);
-      data.writeBoolean(this.mSoundEffectsOn);
-      int music = this.mMusicOn ? 5 : 0;
-      int effects = this.mSoundEffectsOn ? 5 : 0;
-      if (Toolkit.getMusicVolume() != music) {
-         Toolkit.setMusicVolume(music);
+      data.writeBoolean(this.mMusicVolume > 0);
+      data.writeBoolean(this.mSoundEffectsVolume > 0);
+      if (Toolkit.getMusicVolume() != this.mMusicVolume) {
+         Toolkit.setMusicVolume(this.mMusicVolume);
       }
 
-      if (Toolkit.getSoundEffectVolume() != effects) {
-         Toolkit.setSoundEffectVolume(effects);
+      if (Toolkit.getSoundEffectVolume() != this.mSoundEffectsVolume) {
+         Toolkit.setSoundEffectVolume(this.mSoundEffectsVolume);
       }
 
       data.writeBoolean(this.mShowIntro);
@@ -431,6 +450,9 @@ public class Game implements FlowHandler {
       data.writeBoolean(this.mNeighborActionsOn);
       data.writeBoolean(this.mEnergyRefillOn);
       data.writeBoolean(this.mCrashed);
+      data.writeByte(VOLUME_SETTINGS_MARKER);
+      data.writeByte(this.mMusicVolume);
+      data.writeByte(this.mSoundEffectsVolume);
       Toolkit.writeRecordByteArray("settings", data, 1);
    }
 
@@ -478,8 +500,24 @@ public class Game implements FlowHandler {
 
    public void setMusic(boolean p0) {
       this.mMusicOn = p0;
+      this.mMusicVolume = p0 ? 100 : 0;
       this.saveSettings();
       iWrapper.switchMusic(GameEngineUtils.getAreaMusic());
+   }
+
+   public void setMusicVolume(int volume) {
+      this.previewMusicVolume(volume);
+      this.saveSettings();
+   }
+
+   public void previewMusicVolume(int volume) {
+      int previous = this.mMusicVolume;
+      this.mMusicVolume = clampVolume(volume);
+      this.mMusicOn = this.mMusicVolume > 0;
+      Toolkit.setMusicVolume(this.mMusicVolume);
+      if (previous == 0 && this.mMusicVolume > 0) {
+         iWrapper.switchMusic(GameEngineUtils.getAreaMusic());
+      }
    }
 
    public void setNeighborActions(boolean p0) {
@@ -494,7 +532,19 @@ public class Game implements FlowHandler {
 
    public void setSoundEffects(boolean p0) {
       this.mSoundEffectsOn = p0;
+      this.mSoundEffectsVolume = p0 ? 100 : 0;
       this.saveSettings();
+   }
+
+   public void setSoundEffectsVolume(int volume) {
+      this.previewSoundEffectsVolume(volume);
+      this.saveSettings();
+   }
+
+   public void previewSoundEffectsVolume(int volume) {
+      this.mSoundEffectsVolume = clampVolume(volume);
+      this.mSoundEffectsOn = this.mSoundEffectsVolume > 0;
+      Toolkit.setSoundEffectVolume(this.mSoundEffectsVolume);
    }
 
    private void setSoundsEnabled(boolean p0) {

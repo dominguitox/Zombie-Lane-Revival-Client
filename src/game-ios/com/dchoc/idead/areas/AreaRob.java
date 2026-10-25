@@ -15,6 +15,7 @@ import com.dchoc.idead.tracking.ErrorEvent;
 import com.dchoc.idead.tracking.VisitingEvent;
 import com.dchoc.idead.tuner.Tuner;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 import com.dchoc.windows.WindowSocial;
@@ -132,7 +133,7 @@ public class AreaRob extends Area {
                new ErrorEvent().trackLoadError("Place.loadData", exception.getMessage(), this.mProfile.getName());
             }
 
-            System.err.println(exception);
+            Sonda.probe("AreaRob.loadRobsData " + this.mRecordName, exception);
          }
       }
 

@@ -33,6 +33,7 @@ import com.dchoc.toolkit.PaymentTransaction;
 import com.dchoc.toolkit.Product;
 import com.dchoc.toolkit.ProductResponse;
 import com.dchoc.toolkit.PurchaseRequest;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import java.io.EOFException;
 import java.util.Vector;
@@ -125,10 +126,8 @@ public class WindowMarket extends Window implements IPaymentListener {
             }
          } catch (Exception exception) {
             if (!(exception instanceof EOFException)) {
-               exception.printStackTrace();
+               Sonda.probe("WindowMarket.loadItems " + resources[i], exception);
             }
-
-            System.err.println(exception);
          }
       }
 

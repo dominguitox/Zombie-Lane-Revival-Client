@@ -1,4 +1,5 @@
 package com.dchoc.idead.network;
+import com.dchoc.toolkit.Sonda;
 
 public class Base64 {
    private static final char A_CHAR = 'A';
@@ -74,7 +75,7 @@ public class Base64 {
 
          return bytes;
       } catch (Exception e) {
-         e.printStackTrace();
+         Sonda.probe("Base64.decode", e);
          return null;
       }
    }

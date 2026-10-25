@@ -5,6 +5,7 @@ import com.dchoc.spriteobject.Animation;
 import com.dchoc.spriteobject.DavinciUtilities;
 import com.dchoc.spriteobject.SpriteObject;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import java.io.EOFException;
 import java.util.Hashtable;
@@ -62,7 +63,7 @@ public class FlowProcessor {
       try {
          this.initializeFlow(i, flowHandler);
       } catch (EOFException exception) {
-         System.err.println(exception);
+         Sonda.probe("FlowProcessor.<init> (flow definition)", exception);
       }
    }
 
@@ -702,7 +703,7 @@ public class FlowProcessor {
                      try {
                         this.loadMenu(this.mMenusToLoad[step - this.mStateLoadingCount]);
                      } catch (EOFException exception) {
-                        System.err.println(exception);
+                        Sonda.probe("FlowProcessor.loadMenu", exception);
                      }
                   }
                }

@@ -51,6 +51,7 @@ import com.dchoc.opengl.OGL;
 import com.dchoc.playhaven.PlayHaven;
 import com.dchoc.spriteobject.ServerAssetLoader;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.windows.Window;
 import com.dchoc.windows.WindowNpcDialog;
@@ -242,6 +243,7 @@ public class GameEngine {
             this.setGetSessionStatus();
             break;
          case 99:
+            Sonda.summarize("boot");
             new SessionStartEvent().trackEvent();
             if (this.mGame.crashedEnabled()) {
                new CrashedEvent().trackEvent();

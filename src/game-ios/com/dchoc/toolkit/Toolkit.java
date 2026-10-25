@@ -20,8 +20,10 @@ import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.media.Manager;
 import javax.microedition.media.Player;
+import javax.microedition.media.control.VolumeControl;
 import javax.microedition.media.PlayerListener;
 import javax.microedition.rms.RecordStore;
+import javax.microedition.rms.RecordStoreNotFoundException;
 import zlport.ios.Ios;
 
 public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
@@ -269,12 +271,11 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
                   sm_properties[property - 1] = input.readUTF();
                }
             } catch (EOFException exception) {
-               System.err.println(exception);
                input.close();
             }
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.initialize (properties)", exception);
       }
 
       Vector descriptions = new Vector();
@@ -373,7 +374,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
       try {
          return new String(Files.readAllBytes(file), java.nio.charset.StandardCharsets.UTF_8);
       } catch (IOException exception) {
-         System.err.println("Could not read " + file + ": " + exception);
+         Sonda.probe("Toolkit.loadSharedMissionsJson " + file, exception);
          return null;
       }
    }
@@ -416,7 +417,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
             input.close();
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.getText " + text, exception);
       }
 
       if (result != null) {
@@ -450,7 +451,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
 
          input.close();
       } catch (IOException exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.getResourceBytes " + index, exception);
       }
 
       return result;
@@ -489,7 +490,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
             }
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.loadFile " + name, exception);
       }
 
       Profiler.stopTimer(3);
@@ -570,7 +571,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
             output.close();
          }
       } catch (IOException exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.getResourceByteArray " + name, exception);
       }
 
       return result;
@@ -607,7 +608,9 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
          result = store.getRecord(1);
          store.closeRecordStore();
       } catch (Exception exception) {
-         System.err.println(exception);
+         if (!(exception instanceof RecordStoreNotFoundException)) {
+            Sonda.probe("Toolkit.readRecord " + name, exception);
+         }
       }
 
       return result;
@@ -622,7 +625,9 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
       try {
          RecordStore.deleteRecordStore(name);
       } catch (Exception exception) {
-         System.err.println(exception);
+         if (!(exception instanceof RecordStoreNotFoundException)) {
+            Sonda.probe("Toolkit.writeRecord (delete) " + name, exception);
+         }
       }
 
       if (bytes != null) {
@@ -631,7 +636,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
             store.addRecord(bytes, 0, bytes.length);
             store.closeRecordStore();
          } catch (Exception exception) {
-            System.err.println(exception);
+            Sonda.fail("Toolkit.writeRecord " + name, exception);
          }
       }
    }
@@ -656,9 +661,13 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
       try {
          player = createPlayer(resource);
          player.setLoopCount(loops);
+         VolumeControl control = (VolumeControl)player.getControl("VolumeControl");
+         if (control != null) {
+            control.setLevel(volume);
+         }
          player.start();
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.playMidi " + resource, exception);
       }
 
       if (type == 1) {
@@ -674,7 +683,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
             player.close();
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Toolkit.stopMidi", exception);
       }
    }
 
@@ -693,8 +702,14 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
    }
 
    public static void setMusicVolume(int volume) {
-      sm_musicVolume = volume;
-      if (volume == 0) {
+      sm_musicVolume = Math.max(0, Math.min(100, volume));
+      if (sm_currentMusic != null) {
+         VolumeControl control = (VolumeControl)sm_currentMusic.getControl("VolumeControl");
+         if (control != null) {
+            control.setLevel(sm_musicVolume);
+         }
+      }
+      if (sm_musicVolume == 0) {
          iWrapper.stopMusic();
          sm_currentMusic = null;
       }
@@ -705,7 +720,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
    }
 
    public static void setSoundEffectVolume(int volume) {
-      sm_soundEffectVolume = volume;
+      sm_soundEffectVolume = Math.max(0, Math.min(100, volume));
    }
 
    public static int getSoundEffectVolume() {
@@ -957,7 +972,7 @@ public class Toolkit extends GameCanvas implements PlayerListener, ResourceIDs {
          try {
             sm_listener.startApp();
          } catch (Throwable throwable) {
-            System.err.println(throwable);
+            Sonda.fail("Toolkit.showNotify", throwable);
          }
       }
    }

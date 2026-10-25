@@ -18,6 +18,7 @@ import com.dchoc.idead.tutorial.TutorialFlow;
 import com.dchoc.iphonewrappers.SettingsWrapper;
 import com.dchoc.parser.Json;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.io.EOFException;
@@ -98,7 +99,7 @@ public class MissionManager {
                return;
             }
          } catch (RuntimeException exception) {
-            System.err.println("MissionManager: could not read missions.json, falling back to r1: " + exception);
+            Sonda.probe("MissionManager.loadData (missions.json; fallback to r1)", exception);
          }
       }
 
@@ -262,10 +263,8 @@ public class MissionManager {
          }
       } catch (Exception exception) {
          if (!(exception instanceof EOFException)) {
-            exception.printStackTrace();
+            Sonda.fail("MissionManager.missions 80468", exception);
          }
-
-         System.err.println(exception);
          data = Toolkit.getResourceByteArray(80475);
 
          try {
@@ -291,10 +290,8 @@ public class MissionManager {
             }
          } catch (Exception exceptionx) {
             if (!(exceptionx instanceof EOFException)) {
-               exceptionx.printStackTrace();
+               Sonda.fail("MissionManager.objectives 80475", exceptionx);
             }
-
-            System.err.println(exceptionx);
             data = Toolkit.getResourceByteArray(80470);
 
             try {
@@ -303,10 +300,8 @@ public class MissionManager {
                }
             } catch (Exception exceptionxx) {
                if (!(exceptionxx instanceof EOFException)) {
-                  exceptionxx.printStackTrace();
+                  Sonda.fail("MissionManager.setups 80470", exceptionxx);
                }
-
-               System.err.println(exceptionxx);
                data = Toolkit.getResourceByteArray(80472);
 
                try {
@@ -315,10 +310,8 @@ public class MissionManager {
                   }
                } catch (Exception exceptionxxx) {
                   if (!(exceptionxxx instanceof EOFException)) {
-                     exceptionxxx.printStackTrace();
+                     Sonda.fail("MissionManager.eventsByType 80472", exceptionxxx);
                   }
-
-                  System.err.println(exceptionxxx);
                   data = Toolkit.getResourceByteArray(80473);
 
                   try {
@@ -327,10 +320,8 @@ public class MissionManager {
                      }
                   } catch (Exception exceptionxxxx) {
                      if (!(exceptionxxxx instanceof EOFException)) {
-                        exceptionxxxx.printStackTrace();
+                        Sonda.fail("MissionManager.eventsById 80473", exceptionxxxx);
                      }
-
-                     System.err.println(exceptionxxxx);
                      data = Toolkit.getResourceByteArray(80476);
 
                      try {
@@ -351,10 +342,8 @@ public class MissionManager {
                         }
                      } catch (Exception exceptionxxxxx) {
                         if (!(exceptionxxxxx instanceof EOFException)) {
-                           exceptionxxxxx.printStackTrace();
+                           Sonda.fail("MissionManager.objectiveEvents 80476", exceptionxxxxx);
                         }
-
-                        System.err.println(exceptionxxxxx);
                         data = Toolkit.getResourceByteArray(80435);
 
                         try {
@@ -363,10 +352,8 @@ public class MissionManager {
                            }
                         } catch (Exception exceptionxxxxxx) {
                            if (!(exceptionxxxxxx instanceof EOFException)) {
-                              exceptionxxxxxx.printStackTrace();
+                              Sonda.fail("MissionManager.achievements 80435", exceptionxxxxxx);
                            }
-
-                           System.err.println(exceptionxxxxxx);
                            data = Toolkit.getResourceByteArray(80436);
 
                            try {
@@ -387,10 +374,8 @@ public class MissionManager {
                               }
                            } catch (Exception exceptionxxxxxxx) {
                               if (!(exceptionxxxxxxx instanceof EOFException)) {
-                                 exceptionxxxxxxx.printStackTrace();
+                                 Sonda.fail("MissionManager.achievementObjectives 80436", exceptionxxxxxxx);
                               }
-
-                              System.err.println(exceptionxxxxxxx);
                            }
                         }
                      }
@@ -634,7 +619,7 @@ public class MissionManager {
       try {
          mission = new Mission(data);
       } catch (Exception exception) {
-         System.err.println("Custom mission could not be read: " + exception);
+         Sonda.probe("MissionManager.addCustomMission", exception);
          return null;
       }
 
@@ -672,9 +657,7 @@ public class MissionManager {
             }
          }
       } catch (Exception exception) {
-         if (!(exception instanceof EOFException)) {
-            System.err.println("Custom mission objectives could not be read: " + exception);
-         }
+         Sonda.probeNonEof("MissionManager.attachCustomObjectives", exception);
       }
    }
 

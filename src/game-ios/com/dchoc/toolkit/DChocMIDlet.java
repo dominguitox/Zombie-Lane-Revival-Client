@@ -134,8 +134,7 @@ public abstract class DChocMIDlet extends MIDlet implements Runnable {
 
          Thread.yield();
       } catch (Throwable throwable) {
-         throwable.printStackTrace();
-         System.err.println(throwable);
+         Sonda.fail("DChocMIDlet.loop", throwable);
       }
 
       if (!this.m_exitApplication && !this.m_appPaused) {
@@ -153,10 +152,9 @@ public abstract class DChocMIDlet extends MIDlet implements Runnable {
          try {
             this.appEventOccurred(3);
          } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            System.err.println(throwable);
+            Sonda.fail("DChocMIDlet.shutdown", throwable);
          }
-
+         Sonda.summarize("shutdown");
          this.notifyDestroyed();
       }
    }
@@ -175,7 +173,7 @@ public abstract class DChocMIDlet extends MIDlet implements Runnable {
                sm_mainLoop = null;
             }
          } catch (Exception exception) {
-            System.err.println(exception);
+            Sonda.probe("DChocMIDlet.shutdown (main.join)", exception);
          }
       }
    }

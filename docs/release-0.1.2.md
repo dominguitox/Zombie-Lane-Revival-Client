@@ -4,9 +4,9 @@ Released: 2026-10-23 (release notes regenerated on 2026-10-25)
 
 The first `0.1.2` build fixed launcher validation when no local profile is
 available and kept the `0.1.1` language support and server isolation
-unchanged. The release notes below now also cover the offline cheats and the
-launcher cleanup added on 2026-10-25; the package must be rebuilt to include
-them.
+unchanged. The release notes below also cover the offline cheats, launcher
+cleanup, audio controls and clearer startup diagnostics added on 2026-10-25.
+The package must be rebuilt to include these later source changes.
 
 ## Fixes
 
@@ -39,6 +39,19 @@ them.
   says true.
 - The checkboxes keep their per-profile state: they follow each selected
   profile's saved options.
+
+## In-game audio and startup diagnostics (added 2026-10-25)
+
+- Replaced the in-game music and sound-effect on/off switches with separate
+  sliders from 0 to 100 (0 mutes audio). Dragging previews the OpenAL gain for
+  new effects and the currently playing music; the selected value persists in
+  the existing `settings` record after its original eight bytes.
+- Existing settings records migrate from their two audio flags: enabled audio
+  starts at 100; disabled audio starts at 0. The record's other fields and
+  bytes remain in place.
+- Expected end-of-file and optional-resource misses no longer print as errors.
+  Startup diagnostics are summarized after game loading; real failures retain
+  their stack trace.
 
 ### Investigation log: reversibility report (2026-10-25, closed)
 
@@ -86,8 +99,10 @@ before packaging; the release classes are trace-free (the only remaining
 
 Verified on Windows with Temurin 25.0.4.1 and the bundled Java 21.0.8 runtime:
 
-- Build compiles 67 classes (the `PlayerProfile` override was added to the
-  release class list for the cheat).
+- Build compiles the expanded client class allowlist, including audio players,
+  in-game volume controls and startup diagnostics.
+- The current working tree compiles cleanly with Java 25 targeting Java 21;
+  the release allowlist produces 93 class files. `IosMain --help` exits 0.
 - Headless `IosMain --help` smoke test exits 0.
 - Language harness passes 38 checks.
 - Launcher-default harness passes 8 checks with an empty profile list.
@@ -104,6 +119,8 @@ Verified on Windows with Temurin 25.0.4.1 and the bundled Java 21.0.8 runtime:
   headless harness checked the local and server write behaviour of the new
   keys. The launcher GUI itself has no automated visual test (unchanged
   known issue).
+- The new audio sliders have compiled but still need visual and audible
+  validation in a visible gameplay session.
 
 Build command:
 

@@ -1,4 +1,5 @@
 package com.dchoc.parser;
+import com.dchoc.toolkit.Sonda;
 
 import java.io.ByteArrayInputStream;
 import javax.xml.parsers.SAXParserFactory;
@@ -58,7 +59,7 @@ public class XmlWrapper {
 
       @Override
       public void warning(SAXParseException exception) {
-         exception.printStackTrace();
+         Sonda.probe("XmlWrapper.sax warning", exception.getMessage());
       }
    }
 }

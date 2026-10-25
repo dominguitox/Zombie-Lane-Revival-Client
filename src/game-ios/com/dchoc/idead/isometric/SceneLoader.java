@@ -7,6 +7,7 @@ import com.dchoc.idead.items.Item;
 import com.dchoc.idead.tracking.ErrorEvent;
 import com.dchoc.iphonewrappers.SettingsWrapper;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.io.EOFException;
 import java.util.Vector;
@@ -50,7 +51,7 @@ public class SceneLoader {
                }
             }
          } catch (Exception exception) {
-            System.err.println(exception);
+            Sonda.probe("SceneLoader.load (items)", exception);
             pool.releaseAllBut(items);
             Profiler.stopTimer(15);
             data.reset();
@@ -66,8 +67,6 @@ public class SceneLoader {
                   return false;
                }
             }
-
-            System.err.println(exceptionx);
          }
       } else {
          try {
@@ -156,7 +155,7 @@ public class SceneLoader {
          return out;
       } catch (Exception exception) {
          new ErrorEvent().trackError("SceneLoader.saveCurrent", exception.getMessage(), null);
-         System.err.println(exception);
+         Sonda.fail("SceneLoader.saveCurrent", exception);
          Profiler.stopTimer(9);
          return null;
       }

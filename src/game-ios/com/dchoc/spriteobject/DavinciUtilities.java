@@ -164,7 +164,7 @@ public class DavinciUtilities implements ResourceIDs {
                excluded.addElement(excludedData.readInt());
             }
          } catch (EOFException exception) {
-            LOG.log(java.lang.System.Logger.Level.DEBUG, "Fin de la lista de recursos excluidos");
+            LOG.log(java.lang.System.Logger.Level.DEBUG, "End of the excluded-resources list");
          }
       }
 
@@ -655,17 +655,18 @@ public class DavinciUtilities implements ResourceIDs {
          return;
       }
       new ErrorEvent().trackDavinciError("DavinciUtilities." + method, exception.getMessage(), context);
-      System.err.println(exception);
+      com.dchoc.toolkit.Sonda.fail("DavinciUtilities." + method, exception);
    }
 
-   /** Un recurso ausente es habitual en la alpha; se cuenta en vez de inundar el log. */
+   /** A missing resource is routine in the alpha; it is counted instead of flooding the log. */
    private static boolean isMissingResource(Throwable exception) {
       for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
          String message = cause.getMessage();
          if (message == null) {
             continue;
          }
-         if (message.startsWith("Recurso no encontrado")
+         if (message.startsWith("Resource not found")
+            || message.startsWith("Recurso no encontrado")
             || message.startsWith("Recurso não encontrado")
             || message.startsWith("Falha ao abrir recurso")
             || message.startsWith("No se pudo abrir el recurso")) {
@@ -682,7 +683,7 @@ public class DavinciUtilities implements ResourceIDs {
          smMissingTotal++;
          if (count == 1 && smMissingLogged < 5) {
             smMissingLogged++;
-            LOG.log(java.lang.System.Logger.Level.WARNING, "Recurso no encontrado en {0}: {1}", method, message);
+            LOG.log(java.lang.System.Logger.Level.INFO, "Resource not found in {0}: {1}", method, message);
          }
       }
    }
@@ -692,12 +693,12 @@ public class DavinciUtilities implements ResourceIDs {
          String key = method + " | " + message;
          int count = REPEATED_ERRORS.merge(key, 1, Integer::sum);
          if (count == 1 || count % 100 == 0) {
-            LOG.log(java.lang.System.Logger.Level.WARNING, "{0} repetido {1} veces en {2}", message, count, method);
+            LOG.log(java.lang.System.Logger.Level.WARNING, "{0} repeated {1} times in {2}", message, count, method);
          }
       }
    }
 
-   /** Resume los recursos ausentes al terminar la carga, sin repetir cientos de líneas. */
+   /** Summarizes the missing resources when loading finishes, without repeating hundreds of lines. */
    public static void logMissingResourceSummary() {
       List<Map.Entry<String, Integer>> entries;
       int total;
@@ -712,8 +713,8 @@ public class DavinciUtilities implements ResourceIDs {
          smMissingLogged = 0;
       }
       entries.sort(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()));
-      LOG.log(java.lang.System.Logger.Level.WARNING,
-         "Recursos no encontrados: {0} intentos en {1} recursos distintos (detalle en el informe de sesión)",
+      LOG.log(java.lang.System.Logger.Level.INFO,
+         "Missing resources: {0} attempts across {1} different resources (details in the session report)",
          total, entries.size());
       int shown = Math.min(10, entries.size());
       for (int index = 0; index < shown; index++) {
@@ -721,7 +722,7 @@ public class DavinciUtilities implements ResourceIDs {
          LOG.log(java.lang.System.Logger.Level.INFO, "  {0} x {1}", entry.getValue(), entry.getKey());
       }
       if (entries.size() > shown) {
-         LOG.log(java.lang.System.Logger.Level.INFO, "  ... y {0} recursos más", entries.size() - shown);
+         LOG.log(java.lang.System.Logger.Level.INFO, "  ... and {0} more resources", entries.size() - shown);
       }
    }
 }

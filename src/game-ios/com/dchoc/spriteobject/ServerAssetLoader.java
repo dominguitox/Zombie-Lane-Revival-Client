@@ -5,6 +5,7 @@ import com.dchoc.idead.tracking.ErrorEvent;
 import com.dchoc.iphonewrappers.DeviceWrapper;
 import com.dchoc.iphonewrappers.FileWrapper;
 import com.dchoc.toolkit.IByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 
 public class ServerAssetLoader implements ServerAssetListener {
@@ -47,7 +48,7 @@ public class ServerAssetLoader implements ServerAssetListener {
             }
          } catch (Exception exception) {
             new ErrorEvent().trackBundleError("ServerAssetLoader.getUnlinkedRID", exception.getMessage(), null);
-            System.err.println(exception);
+            Sonda.probe("ServerAssetLoader.getUnlinkedRID", exception);
          }
 
          smInstance.loadNextBundle();

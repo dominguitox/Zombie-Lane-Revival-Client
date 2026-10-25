@@ -469,10 +469,10 @@ public final class PcIosPlatform implements IosPlatform {
          if (file != null) {
             return Files.newInputStream(file);
          } else {
-            throw new NullPointerException("Recurso no encontrado: " + name);
+            throw new NullPointerException("Resource not found: " + name);
          }
       } catch (IOException | IllegalArgumentException exception) {
-         NullPointerException failure = new NullPointerException("No se pudo abrir el recurso: " + name);
+         NullPointerException failure = new NullPointerException("Could not open the resource: " + name);
          failure.initCause(exception);
          throw failure;
       }

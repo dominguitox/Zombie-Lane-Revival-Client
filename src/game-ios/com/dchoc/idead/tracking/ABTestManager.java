@@ -2,6 +2,7 @@ package com.dchoc.idead.tracking;
 
 import com.dchoc.idead.tuner.Tuner;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 
 public class ABTestManager {
@@ -30,7 +31,7 @@ public class ABTestManager {
                Tuner.setPlayerSpeed(speed);
             }
          } catch (Exception e) {
-            System.err.println(e);
+            Sonda.probe("ABTestManager.load (RMS_AB_TEST)", e);
          }
       }
    }

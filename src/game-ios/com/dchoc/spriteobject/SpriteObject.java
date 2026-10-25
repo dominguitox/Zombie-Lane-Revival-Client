@@ -1,6 +1,7 @@
 package com.dchoc.spriteobject;
 
 import com.dchoc.idead.tracking.ErrorEvent;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.opengl.OGL;
 
 public class SpriteObject {
@@ -74,7 +75,7 @@ public class SpriteObject {
                DavinciUtilities.modRefCounters(animation, -1);
             } catch (Exception exception) {
                new ErrorEvent().trackDavinciError("SpriteObject.checkHD", exception.getMessage(), Integer.toString(resourceId));
-               System.err.println(exception);
+               Sonda.probe("SpriteObject.checkHD " + resourceId, exception);
             }
          }
       }

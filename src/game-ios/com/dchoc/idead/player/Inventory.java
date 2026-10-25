@@ -8,6 +8,7 @@ import com.dchoc.idead.items.ItemManager;
 import com.dchoc.idead.missions.MissionManager;
 import com.dchoc.idead.tracking.ErrorEvent;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.io.EOFException;
 import java.util.Vector;
@@ -171,7 +172,7 @@ public class Inventory {
          new ErrorEvent().trackLoadError("Inventory.load", exception.getMessage(), null);
          return false;
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Inventory.load (items)", exception);
       }
 
       return true;

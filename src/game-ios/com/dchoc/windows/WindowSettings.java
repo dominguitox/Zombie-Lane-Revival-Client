@@ -4,6 +4,7 @@ import com.dchoc.DCiDead;
 import com.dchoc.hud.HUDAutoTextField;
 import com.dchoc.hud.HUDButtonOnOff;
 import com.dchoc.hud.HUDImage;
+import com.dchoc.hud.HUDVolumeControl;
 import com.dchoc.hud.RoundRectangle;
 import com.dchoc.hud.WindowManager;
 import com.dchoc.idead.Game;
@@ -38,8 +39,8 @@ public class WindowSettings extends Window {
    private HUDImage mImageSounds;
    private HUDImage mImageLanguages;
    private HUDImage mImageNotifications;
-   private HUDButtonOnOff mButtonMusic;
-   private HUDButtonOnOff mButtonSounds;
+   private HUDVolumeControl mVolumeMusic;
+   private HUDVolumeControl mVolumeSounds;
    private HUDButtonOnOff mButtonNotifications1;
    private HUDButtonOnOff mButtonNotifications2;
    private HUDButtonOnOff mButtonNotifications3;
@@ -153,13 +154,15 @@ public class WindowSettings extends Window {
       text.setText(2337, DCiDead.getFont(3));
       this.mObjects.addObject(this.mTextSpanish);
       box = this.mCollisions.getCollisionBox(30);
-      this.mButtonMusic = new HUDButtonOnOff(1, box.getX(), box.getY(), 74687, true);
-      this.mObjects.addObject(this.mButtonMusic);
-      this.mButtonMusic.setTrackingEvent(BUTTON_NAMES[1]);
+      this.mVolumeMusic = new HUDVolumeControl(1, box);
+      this.mVolumeMusic.setTrackingEvent(BUTTON_NAMES[1]);
+      this.mVolumeMusic.setPreviewListener(volume -> Game.getInstance().previewMusicVolume(volume));
+      this.mObjects.addObject(this.mVolumeMusic);
       box = this.mCollisions.getCollisionBox(31);
-      this.mButtonSounds = new HUDButtonOnOff(2, box.getX(), box.getY(), 74687, true);
-      this.mObjects.addObject(this.mButtonSounds);
-      this.mButtonSounds.setTrackingEvent(BUTTON_NAMES[2]);
+      this.mVolumeSounds = new HUDVolumeControl(2, box);
+      this.mVolumeSounds.setTrackingEvent(BUTTON_NAMES[2]);
+      this.mVolumeSounds.setPreviewListener(volume -> Game.getInstance().previewSoundEffectsVolume(volume));
+      this.mObjects.addObject(this.mVolumeSounds);
       box = this.mCollisions.getCollisionBox(81);
       this.mButtonNotifications1 = new HUDButtonOnOff(3, box.getX(), box.getY(), 74687, true);
       this.mObjects.addObject(this.mButtonNotifications1);
@@ -229,10 +232,10 @@ public class WindowSettings extends Window {
             WindowManager.closeWindow();
             break;
          case 1:
-            game.setMusic(this.mButtonMusic.getState() == 0);
+            game.setMusicVolume(this.mVolumeMusic.getLevel());
             break;
          case 2:
-            game.setSoundEffects(this.mButtonSounds.getState() == 0);
+            game.setSoundEffectsVolume(this.mVolumeSounds.getLevel());
             break;
          case 3:
             game.setCropsAndHarvesting(this.mButtonNotifications1.getState() == 0);
@@ -270,11 +273,9 @@ public class WindowSettings extends Window {
 
    public void updateSettings() {
       Game game = Game.getInstance();
-      HUDButtonOnOff button = this.mButtonMusic;
-      button.setStatus(game.musicEnabled());
-      button = this.mButtonSounds;
-      button.setStatus(game.soundEffectsEnabled());
-      button = this.mButtonNotifications1;
+      this.mVolumeMusic.setLevel(game.getMusicVolume());
+      this.mVolumeSounds.setLevel(game.getSoundEffectsVolume());
+      HUDButtonOnOff button = this.mButtonNotifications1;
       button.setStatus(game.cropsAndHarvestingEnabled());
       button = this.mButtonNotifications2;
       button.setStatus(game.neighborActionsEnabled());

@@ -3,6 +3,7 @@ package com.dchoc.idead.spawning;
 import com.dchoc.collection.HashTable;
 import com.dchoc.idead.GameEngineUtils;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import java.util.Vector;
 import zlport.ios.Ios;
@@ -30,7 +31,7 @@ public class SpawningManager {
             smSpawnIDs.add(spawning.getSpawnID(), spawning);
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probeNonEof("SpawningManager.init (spawnings)", exception);
          data = Toolkit.getResourceByteArray(80486);
 
          try {
@@ -39,7 +40,7 @@ public class SpawningManager {
                smLocations.add(location.getID(), location);
             }
          } catch (Exception exceptionx) {
-            System.err.println(exceptionx);
+            Sonda.probeNonEof("SpawningManager.init (locations)", exceptionx);
             applyPcSpawnMultiplier();
          }
       }

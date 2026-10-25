@@ -6,6 +6,7 @@ import com.dchoc.idead.player.PlayerProfile;
 import com.dchoc.toolkit.CsvIDs;
 import com.dchoc.toolkit.DChocByteArray;
 import com.dchoc.toolkit.Toolkit;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.util.Vector;
 
@@ -37,7 +38,7 @@ public class ItemManager implements CsvIDs {
             getItems(item.getType()).addElement(item);
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probeNonEof("ItemManager.decorations 80459", exception);
          data = Toolkit.getResourceByteArray(80457);
 
          try {
@@ -46,7 +47,7 @@ public class ItemManager implements CsvIDs {
                getItems(item.getType()).addElement(item);
             }
          } catch (Exception exceptionx) {
-            System.err.println(exceptionx);
+            Sonda.probeNonEof("ItemManager.constructions 80457", exceptionx);
             data = Toolkit.getResourceByteArray(80461);
 
             try {
@@ -55,7 +56,7 @@ public class ItemManager implements CsvIDs {
                   getItems(item.getType()).addElement(item);
                }
             } catch (Exception exceptionxx) {
-               System.err.println(exceptionxx);
+               Sonda.probeNonEof("ItemManager.zombies 80461", exceptionxx);
                data = Toolkit.getResourceByteArray(80462);
 
                try {
@@ -64,7 +65,7 @@ public class ItemManager implements CsvIDs {
                      getItems(item.getType()).addElement(item);
                   }
                } catch (Exception exceptionxxx) {
-                  System.err.println(exceptionxxx);
+                  Sonda.probeNonEof("ItemManager.destructibles 80462", exceptionxxx);
                   data = Toolkit.getResourceByteArray(80467);
 
                   try {
@@ -73,7 +74,7 @@ public class ItemManager implements CsvIDs {
                         getItems(item.getType()).addElement(item);
                      }
                   } catch (Exception exceptionxxxx) {
-                     System.err.println(exceptionxxxx);
+                     Sonda.probeNonEof("ItemManager.avatars 80467", exceptionxxxx);
                      data = Toolkit.getResourceByteArray(80455);
 
                      try {
@@ -82,7 +83,7 @@ public class ItemManager implements CsvIDs {
                            getItems(item.getType()).addElement(item);
                         }
                      } catch (Exception exceptionxxxxx) {
-                        System.err.println(exceptionxxxxx);
+                        Sonda.probeNonEof("ItemManager.edibles 80455", exceptionxxxxx);
                         data = Toolkit.getResourceByteArray(80465);
 
                         try {
@@ -91,7 +92,7 @@ public class ItemManager implements CsvIDs {
                               getItems(item.getType()).addElement(item);
                            }
                         } catch (Exception exceptionxxxxxx) {
-                           System.err.println(exceptionxxxxxx);
+                           Sonda.probeNonEof("ItemManager.weapons 80465", exceptionxxxxxx);
                            data = Toolkit.getResourceByteArray(80453);
 
                            try {
@@ -100,7 +101,7 @@ public class ItemManager implements CsvIDs {
                                  getItems(item.getType()).addElement(item);
                               }
                            } catch (Exception exceptionxxxxxxx) {
-                              System.err.println(exceptionxxxxxxx);
+                              Sonda.probeNonEof("ItemManager.playerItems 80453", exceptionxxxxxxx);
                               data = Toolkit.getResourceByteArray(80463);
 
                               try {
@@ -109,7 +110,7 @@ public class ItemManager implements CsvIDs {
                                     getItems(item.getType()).addElement(item);
                                  }
                               } catch (Exception exceptionxxxxxxxx) {
-                                 System.err.println(exceptionxxxxxxxx);
+                                 Sonda.probeNonEof("ItemManager.collectibles 80463", exceptionxxxxxxxx);
                                  data = Toolkit.getResourceByteArray(80456);
 
                                  try {
@@ -118,7 +119,7 @@ public class ItemManager implements CsvIDs {
                                        getItems(item.getType()).addElement(item);
                                     }
                                  } catch (Exception exceptionxxxxxxxxx) {
-                                    System.err.println(exceptionxxxxxxxxx);
+                                    Sonda.probeNonEof("ItemManager.farming 80456", exceptionxxxxxxxxx);
                                     data = Toolkit.getResourceByteArray(80460);
 
                                     try {
@@ -127,7 +128,7 @@ public class ItemManager implements CsvIDs {
                                           getItems(item.getType()).addElement(item);
                                        }
                                     } catch (Exception exceptionxxxxxxxxxx) {
-                                       System.err.println(exceptionxxxxxxxxxx);
+                                       Sonda.probeNonEof("ItemManager.fences 80460", exceptionxxxxxxxxxx);
                                        data = Toolkit.getResourceByteArray(80458);
 
                                        try {
@@ -136,7 +137,7 @@ public class ItemManager implements CsvIDs {
                                              getItems(item.getType()).addElement(item);
                                           }
                                        } catch (Exception exceptionxxxxxxxxxxx) {
-                                          System.err.println(exceptionxxxxxxxxxxx);
+                                          Sonda.probeNonEof("ItemManager.crafting 80458", exceptionxxxxxxxxxxx);
                                           data = Toolkit.getResourceByteArray(80464);
 
                                           try {
@@ -145,7 +146,7 @@ public class ItemManager implements CsvIDs {
                                                 getItems(item.getType()).addElement(item);
                                              }
                                           } catch (Exception exceptionxxxxxxxxxxxx) {
-                                             System.err.println(exceptionxxxxxxxxxxxx);
+                                             Sonda.probeNonEof("ItemManager.gifts 80464", exceptionxxxxxxxxxxxx);
                                              data = Toolkit.getResourceByteArray(80454);
 
                                              try {
@@ -154,7 +155,7 @@ public class ItemManager implements CsvIDs {
                                                    getItems(item.getType()).addElement(item);
                                                 }
                                              } catch (Exception exceptionxxxxxxxxxxxxx) {
-                                                System.err.println(exceptionxxxxxxxxxxxxx);
+                                                Sonda.probeNonEof("ItemManager.boosters 80454", exceptionxxxxxxxxxxxxx);
                                                 data = Toolkit.getResourceByteArray(80441);
 
                                                 try {
@@ -162,7 +163,7 @@ public class ItemManager implements CsvIDs {
                                                       smCollections.addElement(new Collection(data));
                                                    }
                                                 } catch (Exception exceptionxxxxxxxxxxxxxx) {
-                                                   System.err.println(exceptionxxxxxxxxxxxxxx);
+                                                   Sonda.probeNonEof("ItemManager.collections 80441", exceptionxxxxxxxxxxxxxx);
                                                 }
                                              }
                                           }

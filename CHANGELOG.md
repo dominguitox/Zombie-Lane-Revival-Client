@@ -16,6 +16,14 @@ The format follows Keep a Changelog, and versions use the alpha `0.1.x` scheme.
 ### Changed
 
 - The default release version is `0.1.2`.
+- Launcher options now expose local infinite-energy and infinite-cash cheats;
+  the cash cheat keeps the saved balance honest.
+- Removed the wheel-zoom, energy-recharge and neighbor-interval fields from
+  the launcher. The related file keys remain supported.
+- Replaced the in-game music and sound-effect switches with independent
+  0–100 volume sliders (0 mutes audio).
+- Startup logs summarize expected resource misses and end-of-file probes;
+  actual failures keep their stack traces.
 
 ## [0.1.1] - 2026-10-23
 

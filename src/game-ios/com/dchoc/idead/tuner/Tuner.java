@@ -5,6 +5,7 @@ import com.dchoc.iphonewrappers.DeviceWrapper;
 import com.dchoc.toolkit.CsvIDs;
 import com.dchoc.toolkit.DChocByteArray;
 import com.dchoc.toolkit.ResourceIDs;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.util.Vector;
@@ -208,7 +209,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
          smMissionToUnlockSpouse = data.readShort();
          smMissionToUnlockDog = data.readShort();
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Tuner.parse (recurso 804xx)", exception);
       }
 
       data = Toolkit.getResourceByteArray(80432);
@@ -222,7 +223,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
          smProbabilityToLikeFences = data.readByte();
          smProbabilityToStartAtFence = data.readByte();
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Tuner.parse (recurso 80432)", exception);
       }
 
       data = Toolkit.getResourceByteArray(80425);
@@ -232,7 +233,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
          smFromTime = data.readInt() * 60000;
          smToTime = data.readInt() * 60000;
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Tuner.parse (recurso 80425)", exception);
       }
 
       data = Toolkit.getResourceByteArray(80422);
@@ -243,7 +244,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
          smGift2 = data.readInt();
          smGift3 = data.readInt();
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("Tuner.parse (recurso 80422)", exception);
       }
 
       smLevels = new HashTable(192);
@@ -255,7 +256,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
             smLevels.add(level.getLevel(), level);
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probeNonEof("Tuner.levels 80433", exception);
          smCombos = new HashTable(16);
          data = Toolkit.getResourceByteArray(80431);
 
@@ -265,7 +266,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
                smCombos.add(combo.getLevel(), combo);
             }
          } catch (Exception exceptionx) {
-            System.err.println(exceptionx);
+            Sonda.probeNonEof("Tuner.combos 80431", exceptionx);
             data = Toolkit.getResourceByteArray(80413);
 
             try {
@@ -273,7 +274,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
                smTutorArea = new AreaSetup(data);
                smNeighborArea = new AreaSetup(data);
             } catch (Exception exceptionxx) {
-               System.err.println(exceptionxx);
+               Sonda.probe("Tuner.fixed areas 80413", exceptionxx);
             }
 
             smAdventureAreas = new Vector(4);
@@ -284,7 +285,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
                   smAdventureAreas.addElement(new AreaSetup(data));
                }
             } catch (Exception exceptionxx) {
-               System.err.println(exceptionxx);
+               Sonda.probeNonEof("Tuner.adventure areas 80414", exceptionxx);
                smEdgeAreas = new Vector(10);
                data = Toolkit.getResourceByteArray(80415);
 
@@ -293,7 +294,7 @@ public class Tuner implements ResourceIDs, CsvIDs {
                      smEdgeAreas.addElement(new EdgeAreaDefinition(data));
                   }
                } catch (Exception exceptionxxx) {
-                  System.err.println(exceptionxxx);
+                  Sonda.probeNonEof("Tuner.edgeAreas 80415", exceptionxxx);
                   smInitialized = true;
                }
             }

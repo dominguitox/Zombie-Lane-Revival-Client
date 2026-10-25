@@ -27,6 +27,7 @@ import com.dchoc.idead.tracking.NotificationEvent;
 import com.dchoc.idead.tuner.Tuner;
 import com.dchoc.idead.tutorial.TutorialFlow;
 import com.dchoc.toolkit.CsvIDs;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.DChocByteArray;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.windows.WindowMarket;
@@ -55,7 +56,7 @@ public class NotificationManager implements CsvIDs {
             smNotifications.addElement(new NotificationDefinition(data));
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probeNonEof("NotificationManager.load (80487)", exception);
          smSceneNotificationsCreated = false;
          smUpdateDeviceToken = false;
          Ios.platform().registerForRemoteNotifications(7);

@@ -4,6 +4,7 @@ import com.dchoc.idead.items.WeaponItem;
 import com.dchoc.iphonewrappers.SettingsWrapper;
 import com.dchoc.toolkit.CsvIDs;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import java.io.EOFException;
 import java.util.Vector;
 
@@ -254,10 +255,10 @@ public class Profile implements CsvIDs {
             this.mAvatars.addElement(new AvatarDescription(data));
          }
       } catch (EOFException exception) {
-         exception.printStackTrace();
+         Sonda.probe("Profile.load (truncated record)", exception);
          return false;
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.fail("Profile.load", exception);
       }
 
       return true;

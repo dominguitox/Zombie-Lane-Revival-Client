@@ -1,6 +1,7 @@
 package com.dchoc.idead.player;
 
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 
 public class VisitingRewards {
@@ -34,7 +35,7 @@ public class VisitingRewards {
             this.mRewardDuctTape = 1;
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probe("VisitingRewards.load", exception);
       }
    }
 

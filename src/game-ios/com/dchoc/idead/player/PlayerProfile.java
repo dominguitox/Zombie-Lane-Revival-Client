@@ -36,6 +36,7 @@ import com.dchoc.iphonewrappers.ActivityWrapper;
 import com.dchoc.playhaven.PlayHaven;
 import com.dchoc.toolkit.CsvIDs;
 import com.dchoc.toolkit.DChocByteArray;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 import com.dchoc.windows.WindowOutOfCashCoins;
@@ -142,7 +143,7 @@ public class PlayerProfile implements CsvIDs {
          smStone = data.readInt();
          smFriendCode = "";
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.fail("PlayerProfile.loadDefaults (resource 80412)", exception);
       }
    }
 
@@ -1129,7 +1130,7 @@ public class PlayerProfile implements CsvIDs {
             }
          }
       } catch (Exception exception) {
-         System.err.println(exception);
+         Sonda.probeNonEof("PlayerProfile.defaultAvatar", exception);
       }
    }
 

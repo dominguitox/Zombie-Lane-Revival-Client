@@ -17,6 +17,7 @@ import com.dchoc.spriteobject.DavinciUtilities;
 import com.dchoc.spriteobject.ServerAssetLoader;
 import com.dchoc.spriteobject.SpriteObject;
 import com.dchoc.toolkit.DChocMIDlet;
+import com.dchoc.toolkit.Sonda;
 import com.dchoc.toolkit.Toolkit;
 import com.dchoc.toolkit.ToolkitHelpers;
 import java.io.IOException;
@@ -352,14 +353,7 @@ public class DCiDead extends DChocMIDlet implements ApplicationControl {
    }
 
    private void initializeGraphics() {
-      try {
-         DavinciUtilities.textureInit();
-      } catch (Exception exception) {
-         new ErrorEvent().trackDavinciError("DavinciUtilities.initialize", exception.getMessage(), null);
-         System.err.println(exception);
-      }
-
-      ServerAssetLoader.init();
+      DavinciUtilities.initialize();
    }
 
    public static void initializeFonts() {
@@ -383,7 +377,7 @@ public class DCiDead extends DChocMIDlet implements ApplicationControl {
          smActivityTexts = new String[2];
          loadActivityTexts();
       } catch (IOException exception) {
-         System.err.println(exception);
+         Sonda.fail("DCiDead.initializeFonts", exception);
       }
    }
 
