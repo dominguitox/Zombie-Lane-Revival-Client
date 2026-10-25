@@ -843,6 +843,16 @@ Changes in this build:
   available, and reports width and height independently. Duplicate
   zombie-lane.properties warnings are no longer shown.
 - The Play button stays enabled and validates the form before launch.
+- Local profiles can enable infinite energy or reversible infinite cash; the
+  cash helper keeps the saved balance honest. Server sessions ignore these
+  local-only cheats.
+- Game options include a safe-defaults action that disables cheats and
+  restores a conservative 1136x640 window with normal gameplay values.
+- Music and sound effects have separate 0-100 volume sliders; zero is silent.
+- The generated launcher hides CMD by default. The launcher can opt in to
+  showing the console on the next start; logs remain available in the log file.
+- Expected startup probes are summarized instead of flooding the console;
+  actual failures retain their stack traces.
 - The build compiles the explicit public client class list with the release
   stubs instead of scanning every source file in the tree.
 - Release assembly rejects server code and data, sources, tools, tests, docs,
