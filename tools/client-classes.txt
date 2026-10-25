@@ -16,6 +16,7 @@ src\game-ios\com\dchoc\idead\servlets\CreateNewSession.java
 src\game-ios\com\dchoc\idead\servlets\CollectDailyRewards.java
 src\game-ios\com\dchoc\idead\servlets\GetCustomMissions.java
 src\game-ios\com\dchoc\idead\servlets\GetSessionStatus.java
+src\game-ios\com\dchoc\idead\player\PlayerProfile.java
 src\game-ios\com\dchoc\windows\WindowSocial.java
 src\game-ios\com\dchoc\idead\missions\MissionJsonText.java
 src\game-ios\com\dchoc\idead\missions\Mission.java

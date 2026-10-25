@@ -15,6 +15,7 @@
 - **energia.recarga** — Portuguese ("energy recharge"); the `zombie-lane.properties` key for energy regeneration, in seconds (default 30, valid 1-3600). [hypothesis: port]
 - **spawn.multiplicador** — Portuguese ("spawn multiplier"); the `zombie-lane.properties` key for periodic zombie spawning (default 2.0, valid 1.0-5.0). [hypothesis: port]
 - **vizinho.intervalo** — Portuguese ("neighbor interval"); the `zombie-lane.properties` key for the Rob/neighbour visit interval, in minutes (default 5, valid 1-1440). [hypothesis: port]
+- **trucos.billetes** — Mixed ("tricks: cash"); the `zombie-lane.properties` key for the infinite-cash offline cheat, written by the launcher only for local sessions and ignored when launching against a server (`true`/`false`, default `false`). [implemented]
 - **sem código na 1.4.4** — Portuguese ("without code in 1.4.4"); the message prefix of the port's stubbed methods that throw `UnsupportedOperationException`. [hypothesis: port]
 - **OfflineNetwork** — A URL handler in the port that throws `ConnectException` for HTTP and HTTPS; the source `Launcher.run()` no longer installs it. [hypothesis: port]
 - **LocalProfiles** — Revival launcher class (`zlport.launcher.LocalProfiles`) that discovers, selects, creates and lists local player profiles and their sibling profiles as neighbors. [implemented]

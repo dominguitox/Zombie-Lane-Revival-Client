@@ -25,10 +25,11 @@ final class Settings {
    static final String PAUSE_ON_FOCUS_LOSS = "pausarSemFoco";
    static final String WHEEL_STEP = "roda.passo";
    static final String LOG_LEVEL = "log.nivel";
-   static final String ENERGY_RECHARGE = "energia.recarga";
-   static final String SPAWN_MULTIPLIER = "spawn.multiplicador";
-   static final String NEIGHBOR_INTERVAL = "vizinho.intervalo";
-   static final String AUDIO = "audio";
+    static final String ENERGY_RECHARGE = "energia.recarga";
+    static final String SPAWN_MULTIPLIER = "spawn.multiplicador";
+    static final String NEIGHBOR_INTERVAL = "vizinho.intervalo";
+    static final String CASH_CHEAT = "trucos.billetes";
+    static final String AUDIO = "audio";
    static final String GL_DEBUG = "gl.debug";
    static final float MIN_WHEEL_STEP = 1.01F;
    static final float MAX_WHEEL_STEP = 1.5F;
@@ -52,6 +53,7 @@ final class Settings {
       ENERGY_RECHARGE,
       SPAWN_MULTIPLIER,
       NEIGHBOR_INTERVAL,
+      CASH_CHEAT,
       AUDIO,
       GL_DEBUG
    );
@@ -66,11 +68,12 @@ final class Settings {
    private final boolean pauseOnFocusLoss;
    private final float wheelStep;
    private final String logLevel;
-   private final int energyRecharge;
-   private final float spawnMultiplier;
-   private final int neighborInterval;
-   private final boolean audio;
-   private final boolean glDebug;
+    private final int energyRecharge;
+    private final float spawnMultiplier;
+    private final int neighborInterval;
+    private final boolean cashCheat;
+    private final boolean audio;
+    private final boolean glDebug;
 
    static Settings defaults() {
       return new Settings(new Properties(), null);
@@ -124,6 +127,7 @@ final class Settings {
       this.spawnMultiplier = this.decimal(SPAWN_MULTIPLIER, SPAWN_MULTIPLIER_DEFAULT, MIN_SPAWN_MULTIPLIER, MAX_SPAWN_MULTIPLIER);
       Integer interval = this.integer(NEIGHBOR_INTERVAL, 1, MAX_NEIGHBOR_INTERVAL);
       this.neighborInterval = interval != null ? interval : NEIGHBOR_INTERVAL_DEFAULT;
+      this.cashCheat = this.bool(CASH_CHEAT, false);
       this.audio = this.bool(AUDIO, true);
       this.glDebug = this.bool(GL_DEBUG, false);
    }
@@ -172,11 +176,16 @@ final class Settings {
       return this.spawnMultiplier;
    }
 
-   int neighborIntervalMinutes() {
-      return this.neighborInterval;
-   }
+    int neighborIntervalMinutes() {
+       return this.neighborInterval;
+    }
 
-   boolean audio() {
+    /** The infinite-cash cheat; offline play only (the server launch ignores it). */
+    boolean cashCheat() {
+       return this.cashCheat;
+    }
+
+    boolean audio() {
       return this.audio;
    }
 
@@ -331,12 +340,14 @@ final class Settings {
       s.append(GL_DEBUG).append('=').append(current.getProperty(GL_DEBUG, "false").strip()).append(n);
       s.append("# Nivel del log (logs/zombie-lane.log): SEVERE, WARNING, INFO o FINE (con la depuración del juego).").append(n);
       s.append(LOG_LEVEL).append('=').append(current.getProperty(LOG_LEVEL, "INFO").strip()).append(n);
-      s.append("# Solo la versión 1.4.4: segundos para recargar 1 de energía, de 1 a 3600 (el iPhone usaba 300).").append(n);
+      s.append("# Solo la versión 1.4.4: segundos para recargar 1 de energía, de 1 a 3600 (el iPhone usaba 300). La casilla \"energía infinita\" del lanzador escribe 1; con la casilla desmarcada el lanzador conserva el valor que haya aquí.").append(n);
       s.append(ENERGY_RECHARGE).append('=').append(current.getProperty(ENERGY_RECHARGE, String.valueOf(ENERGY_RECHARGE_DEFAULT)).strip()).append(n);
       s.append("# Solo la versión 1.4.4: multiplica los zombis que aparecen (por vez y el tope en el mapa), de 1.0 (el del iPhone) a 5.0.").append(n);
       s.append(SPAWN_MULTIPLIER).append('=').append(current.getProperty(SPAWN_MULTIPLIER, String.valueOf(SPAWN_MULTIPLIER_DEFAULT)).strip()).append(n);
       s.append("# Solo la versión 1.4.4: minutos entre los premios de la visita a Rob y el reinicio de las 5 acciones, de 1 a 1440 (el iPhone usaba 1440 = 24 h).").append(n);
       s.append(NEIGHBOR_INTERVAL).append('=').append(current.getProperty(NEIGHBOR_INTERVAL, String.valueOf(NEIGHBOR_INTERVAL_DEFAULT)).strip()).append(n);
+      s.append("# Trucos locales: billetes infinitos (true/false); solo surte efecto lanzando en local.").append(n);
+      s.append(CASH_CHEAT).append('=').append(current.getProperty(CASH_CHEAT, "false").strip()).append(n);
       Properties unknown = new Properties();
 
       for (String key : current.stringPropertyNames()) {

@@ -26,13 +26,20 @@ choose:
   made. [implemented]
 - **Window and game options** — fullscreen, maximized, window size (the
   1136x640 logical resolution never changes; only the OS window), pause on
-  focus loss, wheel zoom step, audio on/off (`--no-audio`), log level, and
-  the three 1.4.4 balance overrides with their ranges — `energia.recarga`
-  (1–3600 s, default 30), `spawn.multiplicador` (1.0–5.0, default 2.0) and
-  `vizinho.intervalo` (1–1440 min, default 5). Invalid values are rejected
-  by the launcher UI instead of waiting for the game's fallback warning.
-  Diagnostics (`--gl-debug` equivalent, `FINE` logging) live in a collapsible
-  "Avanzado" section. [implemented]
+  focus loss, audio on/off (`--no-audio`), log level, and the zombie spawn
+  multiplier field (`spawn.multiplicador`, 1.0–5.0, default 2.0). Two
+  checkboxes replace the old per-value fields: "Infinite energy"
+  (`energia.recarga=1`; an already-tuned value in the file is preserved when
+  the box is unchecked) and "Infinite cash" (`trucos.billetes`, disabled in
+  server mode — the cheat never reaches a server session). The cash helper
+  keeps an honest book: the save always stores the real balance (earnings
+  in, spends out, min 0), so unchecking the cheat reverses it instead of
+  leaving a 9,999,999 wallet behind. `roda.passo`
+  (wheel zoom step) and `vizinho.intervalo` (neighbour minutes) lost their
+  launcher fields and remain file-only keys. Invalid or unmatched values
+  still fall back to defaults with a warning in the log; the launcher
+  validates what it owns. Diagnostics (`--gl-debug` equivalent, `FINE`
+  logging) live in a collapsible "Avanzado" section. [implemented]
 - **Dev options** — the dev shared-missions directory field is compiled out of
   the player edition. The real UI builder lives in the separate revival
   repository's dev tree (`src-dev`; see

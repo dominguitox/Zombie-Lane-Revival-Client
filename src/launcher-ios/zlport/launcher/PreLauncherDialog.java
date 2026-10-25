@@ -54,12 +54,9 @@ public final class PreLauncherDialog {
    private static final int MIN_WINDOW_HEIGHT = 360;
    private static final int MAX_WINDOW_DIMENSION = 16384;
    private static final int MAX_PORT_FIELD_LENGTH = 5;
-   private static final int MAX_WINDOW_FIELD_LENGTH = 5;
-   private static final int MAX_ZOOM_FIELD_LENGTH = 4;
-   private static final int MAX_RECHARGE_FIELD_LENGTH = 4;
-   private static final int MAX_SPAWN_FIELD_LENGTH = 4;
-   private static final int MAX_INTERVAL_FIELD_LENGTH = 4;
-   private static final int MAX_PASSWORD_LENGTH = 128;
+    private static final int MAX_WINDOW_FIELD_LENGTH = 5;
+    private static final int MAX_SPAWN_FIELD_LENGTH = 4;
+    private static final int MAX_PASSWORD_LENGTH = 128;
 
    /** Dialog outcome: chosen profile (null when the picker is not in use) and confirmed connection. */
    public record Selection(
@@ -74,29 +71,28 @@ public final class PreLauncherDialog {
    ) {
    }
 
-   /** Raw field values, without Swing, so validation can run outside the dialog. */
-   record Fields(
-      boolean serverMode,
-      String host,
-      String port,
-      String user,
-      String password,
-      String width,
-      String height,
-      boolean maximized,
-      boolean fullscreen,
-      boolean pauseFocus,
-      String zoom,
-      boolean audio,
-      boolean glDebug,
-      String level,
-      String recharge,
-      String spawn,
-      String interval
-   ) {
-      static final Fields EMPTY =
-         new Fields(false, "", "", "", "", "", "", false, false, true, "", true, false, "INFO", "", "", "");
-   }
+    /** Raw field values, without Swing, so validation can run outside the dialog. */
+    record Fields(
+       boolean serverMode,
+       String host,
+       String port,
+       String user,
+       String password,
+       String width,
+       String height,
+       boolean maximized,
+       boolean fullscreen,
+       boolean pauseFocus,
+       boolean audio,
+       boolean glDebug,
+       String level,
+       String spawn,
+       String energyRecharge,
+       boolean cashCheat
+    ) {
+       static final Fields EMPTY =
+          new Fields(false, "", "", "", "", "", "", false, false, true, true, false, "INFO", "", "", false);
+    }
 
    private final Path dataRoot;
    private final PreLauncherState seed;
@@ -127,15 +123,14 @@ public final class PreLauncherDialog {
    private JTextField heightField;
    private JCheckBox maximizedBox;
    private JCheckBox fullscreenBox;
-   private JCheckBox pauseFocusBox;
-   private JTextField zoomField;
-   private JCheckBox audioBox;
-   private JCheckBox glDebugBox;
-   private JComboBox<String> levelBox;
-   private JTextField rechargeField;
-   private JTextField spawnField;
-   private JTextField intervalField;
-   private Settings currentSettings = Settings.defaults();
+    private JCheckBox pauseFocusBox;
+    private JCheckBox audioBox;
+    private JCheckBox glDebugBox;
+    private JComboBox<String> levelBox;
+    private JTextField spawnField;
+    private JCheckBox infiniteEnergyBox;
+    private JCheckBox cashCheatBox;
+    private Settings currentSettings = Settings.defaults();
 
    private PreLauncherDialog(Path dataRoot, PreLauncherState seed, boolean pickProfile) {
       this.dataRoot = dataRoot;
@@ -393,32 +388,17 @@ public final class PreLauncherDialog {
       section.add(this.audioBox, nextCell(c));
 
       c = this.nextRow(c);
-      section.add(new JLabel(LauncherText.get("label.zoom")), c);
-      c = this.fieldCell(c);
-      this.zoomField = new JTextField(4);
-      this.decimalField(this.zoomField, MAX_ZOOM_FIELD_LENGTH);
-      section.add(this.zoomField, c);
-
-      c = this.nextRow(c);
-      this.rechargeField = new JTextField(4);
-      this.spawnField = new JTextField(4);
-      this.intervalField = new JTextField(4);
-      this.integerField(this.rechargeField, MAX_RECHARGE_FIELD_LENGTH);
-      this.decimalField(this.spawnField, MAX_SPAWN_FIELD_LENGTH);
-      this.integerField(this.intervalField, MAX_INTERVAL_FIELD_LENGTH);
-      section.add(new JLabel(LauncherText.get("label.recharge")), c);
-      c = this.fieldCell(c);
-      section.add(this.rechargeField, c);
-
-      c = this.nextRow(c);
       section.add(new JLabel(LauncherText.get("label.spawn")), c);
       c = this.fieldCell(c);
+      this.spawnField = new JTextField(4);
+      this.decimalField(this.spawnField, MAX_SPAWN_FIELD_LENGTH);
       section.add(this.spawnField, c);
 
       c = this.nextRow(c);
-      section.add(new JLabel(LauncherText.get("label.neighbor")), c);
-      c = this.fieldCell(c);
-      section.add(this.intervalField, c);
+      this.infiniteEnergyBox = new JCheckBox(LauncherText.get("check.energyInfinite"));
+      this.cashCheatBox = new JCheckBox(LauncherText.get("check.cashCheat"));
+      section.add(this.infiniteEnergyBox, c);
+      section.add(this.cashCheatBox, nextCell(c));
 
       content.add(section, sectionConstraints(row++));
       return row;
@@ -472,20 +452,19 @@ public final class PreLauncherDialog {
       this.applySettings(settings);
    }
 
-   private void applySettings(Settings settings) {
-      this.widthField.setText(String.valueOf(settings.width() != null ? settings.width() : DEFAULT_WINDOW_WIDTH));
-      this.heightField.setText(String.valueOf(settings.height() != null ? settings.height() : DEFAULT_WINDOW_HEIGHT));
-      this.maximizedBox.setSelected(settings.maximized());
-      this.fullscreenBox.setSelected(settings.fullscreen());
-      this.pauseFocusBox.setSelected(settings.pauseOnFocusLoss());
-      this.zoomField.setText(String.valueOf(settings.wheelStep()));
-      this.audioBox.setSelected(settings.audio());
-      this.glDebugBox.setSelected(settings.glDebug());
-      this.levelBox.setSelectedItem(settings.logLevel());
-      this.rechargeField.setText(String.valueOf(settings.energyRechargeSeconds()));
-      this.spawnField.setText(String.valueOf(settings.spawnMultiplier()));
-      this.intervalField.setText(String.valueOf(settings.neighborIntervalMinutes()));
-   }
+    private void applySettings(Settings settings) {
+       this.widthField.setText(String.valueOf(settings.width() != null ? settings.width() : DEFAULT_WINDOW_WIDTH));
+       this.heightField.setText(String.valueOf(settings.height() != null ? settings.height() : DEFAULT_WINDOW_HEIGHT));
+       this.maximizedBox.setSelected(settings.maximized());
+       this.fullscreenBox.setSelected(settings.fullscreen());
+       this.pauseFocusBox.setSelected(settings.pauseOnFocusLoss());
+       this.audioBox.setSelected(settings.audio());
+       this.glDebugBox.setSelected(settings.glDebug());
+       this.levelBox.setSelectedItem(settings.logLevel());
+       this.spawnField.setText(String.valueOf(settings.spawnMultiplier()));
+       this.infiniteEnergyBox.setSelected(settings.energyRechargeSeconds() == 1);
+       this.cashCheatBox.setSelected(settings.cashCheat());
+    }
 
    private void createProfile() {
       String name = JOptionPane.showInputDialog(
@@ -550,16 +529,27 @@ public final class PreLauncherDialog {
       }
    }
 
-   private void setServerEnabled(boolean enabled) {
-      if (this.serverPanel == null) {
-         return;
-      }
-      this.hostField.setEnabled(enabled);
-      this.portField.setEnabled(enabled);
-      this.userField.setEnabled(enabled);
-      this.passwordField.setEnabled(enabled);
-      this.rememberUser.setEnabled(enabled);
-   }
+    private void setServerEnabled(boolean enabled) {
+       if (this.serverPanel == null) {
+          return;
+       }
+       this.hostField.setEnabled(enabled);
+       this.portField.setEnabled(enabled);
+       this.userField.setEnabled(enabled);
+       this.passwordField.setEnabled(enabled);
+       this.rememberUser.setEnabled(enabled);
+       // The cheats are offline-only: disabled while the server mode is picked.
+       this.setCheatBoxesEnabled(!enabled);
+    }
+
+    private void setCheatBoxesEnabled(boolean local) {
+       if (this.infiniteEnergyBox != null) {
+          this.infiniteEnergyBox.setEnabled(local);
+       }
+       if (this.cashCheatBox != null) {
+          this.cashCheatBox.setEnabled(local);
+       }
+    }
 
    private void limitLength(JTextField field, int maxLength) {
       AbstractDocument document = (AbstractDocument) field.getDocument();
@@ -601,45 +591,62 @@ public final class PreLauncherDialog {
       }
    }
 
-   private Fields collectFields() {
-      return new Fields(
-         this.serverMode.isSelected(),
-         this.hostField.getText(),
-         this.portField.getText(),
-         this.userField.getText(),
-         new String(this.passwordField.getPassword()).replace("\0", " "),
-         this.widthField.getText(),
-         this.heightField.getText(),
-         this.maximizedBox.isSelected(),
-         this.fullscreenBox.isSelected(),
-         this.pauseFocusBox.isSelected(),
-         this.zoomField.getText(),
-         this.audioBox.isSelected(),
-         this.glDebugBox.isSelected(),
-         String.valueOf(this.levelBox.getSelectedItem()),
-         this.rechargeField.getText(),
-         this.spawnField.getText(),
-         this.intervalField.getText()
-      );
-   }
+    private Fields collectFields() {
+       return new Fields(
+          this.serverMode.isSelected(),
+          this.hostField.getText(),
+          this.portField.getText(),
+          this.userField.getText(),
+          new String(this.passwordField.getPassword()).replace("\0", " "),
+          this.widthField.getText(),
+          this.heightField.getText(),
+          this.maximizedBox.isSelected(),
+          this.fullscreenBox.isSelected(),
+          this.pauseFocusBox.isSelected(),
+          this.audioBox.isSelected(),
+          this.glDebugBox.isSelected(),
+          String.valueOf(this.levelBox.getSelectedItem()),
+          this.spawnField.getText(),
+          this.energyRechargeValue(),
+          this.cashCheatBox.isSelected()
+       );
+    }
 
-   /** Keys of zombie-lane.properties the launcher writes, with the field values. */
-   static Map<String, String> optionValues(Fields f) {
-      java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
-      values.put(Settings.WIDTH, f.width().strip());
-      values.put(Settings.HEIGHT, f.height().strip());
-      values.put(Settings.MAXIMIZED, String.valueOf(f.maximized()));
-      values.put(Settings.FULLSCREEN, String.valueOf(f.fullscreen()));
-      values.put(Settings.PAUSE_ON_FOCUS_LOSS, String.valueOf(f.pauseFocus()));
-      values.put(Settings.WHEEL_STEP, f.zoom().strip().replace(',', '.'));
-      values.put(Settings.AUDIO, String.valueOf(f.audio()));
-      values.put(Settings.GL_DEBUG, String.valueOf(f.glDebug()));
-      values.put(Settings.LOG_LEVEL, f.level().strip().toUpperCase(Locale.ROOT));
-      values.put(Settings.ENERGY_RECHARGE, f.recharge().strip());
-      values.put(Settings.SPAWN_MULTIPLIER, f.spawn().strip().replace(',', '.'));
-      values.put(Settings.NEIGHBOR_INTERVAL, f.interval().strip());
-      return values;
-   }
+    /**
+     * The energia.recarga value the launcher persists: the infinite-energy
+     * checkbox becomes 1; otherwise the profile keeps its current seconds,
+     * except a leftover 1 (from a previous checked box), which goes back to
+     * the default.
+     */
+    private String energyRechargeValue() {
+       if (this.infiniteEnergyBox.isSelected()) {
+          return "1";
+       }
+       int seconds = this.currentSettings.energyRechargeSeconds();
+       return String.valueOf(seconds == 1 ? Settings.ENERGY_RECHARGE_DEFAULT : seconds);
+    }
+
+    /** Keys of zombie-lane.properties the launcher writes, with the field values. */
+    static Map<String, String> optionValues(Fields f) {
+       java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
+       values.put(Settings.WIDTH, f.width().strip());
+       values.put(Settings.HEIGHT, f.height().strip());
+       values.put(Settings.MAXIMIZED, String.valueOf(f.maximized()));
+       values.put(Settings.FULLSCREEN, String.valueOf(f.fullscreen()));
+       values.put(Settings.PAUSE_ON_FOCUS_LOSS, String.valueOf(f.pauseFocus()));
+       values.put(Settings.AUDIO, String.valueOf(f.audio()));
+       values.put(Settings.GL_DEBUG, String.valueOf(f.glDebug()));
+       values.put(Settings.LOG_LEVEL, f.level().strip().toUpperCase(Locale.ROOT));
+       values.put(Settings.SPAWN_MULTIPLIER, f.spawn().strip().replace(',', '.'));
+       // Offline helpers only: server sessions leave energia.recarga and the
+       // cash cheat untouched (roda.passo and vizinho.intervalo stay only in
+       // the file, for manual tuning).
+       if (!f.serverMode()) {
+          values.put(Settings.ENERGY_RECHARGE, f.energyRecharge().strip());
+          values.put(Settings.CASH_CHEAT, String.valueOf(f.cashCheat()));
+       }
+       return values;
+    }
 
    /**
     * Validates the fields without Swing or network. Returns the problem list;
@@ -690,58 +697,32 @@ public final class PreLauncherDialog {
          errors.add(LauncherText.format("error.height", f.height(), MIN_WINDOW_HEIGHT, MAX_WINDOW_DIMENSION));
       }
 
-      String zoomError = zoomError(f.zoom());
-      if (zoomError != null) {
-         errors.add(zoomError);
-      }
       String levelError = levelError(f.level());
       if (levelError != null) {
          errors.add(levelError);
-      }
-      String rechargeError = rechargeError(f.recharge());
-      if (rechargeError != null) {
-         errors.add(rechargeError);
       }
       String spawnError = spawnError(f.spawn());
       if (spawnError != null) {
          errors.add(spawnError);
       }
-      String intervalError = intervalError(f.interval());
-      if (intervalError != null) {
-         errors.add(intervalError);
-      }
 
       return errors;
-   }
+    }
 
-   private static Integer boundedInteger(String text, int min, int max) {
-      String value = text == null ? "" : text.strip();
-      if (!value.matches("\\d{1,10}")) {
-         return null;
-      }
-      try {
-         int parsed = Integer.parseInt(value);
-         return parsed >= min && parsed <= max ? parsed : null;
-      } catch (NumberFormatException ignored) {
-         return null;
-      }
-   }
+    private static Integer boundedInteger(String text, int min, int max) {
+       String value = text == null ? "" : text.strip();
+       if (!value.matches("\\d{1,10}")) {
+          return null;
+       }
+       try {
+          int parsed = Integer.parseInt(value);
+          return parsed >= min && parsed <= max ? parsed : null;
+       } catch (NumberFormatException ignored) {
+          return null;
+       }
+    }
 
-   private static String zoomError(String text) {
-      String value = text == null ? "" : text.strip().replace(',', '.');
-      try {
-         float zoom = Float.parseFloat(value);
-         if (!Float.isNaN(zoom) && !Float.isInfinite(zoom) && zoom >= Settings.MIN_WHEEL_STEP && zoom <= Settings.MAX_WHEEL_STEP) {
-            return null;
-         }
-      } catch (NumberFormatException ignored) {
-      }
-      return LauncherText.format(
-         "error.zoom", text, Settings.MIN_WHEEL_STEP, Settings.MAX_WHEEL_STEP
-      );
-   }
-
-   private static String levelError(String text) {
+    private static String levelError(String text) {
       String value = text == null ? "" : text.strip().toUpperCase(Locale.ROOT);
       try {
          java.util.logging.Level.parse(value);
@@ -751,12 +732,7 @@ public final class PreLauncherDialog {
       }
    }
 
-   private static String rechargeError(String text) {
-      String error = LauncherText.format("error.recharge", text, Settings.MAX_ENERGY_RECHARGE);
-      return boundedInteger(text, 1, Settings.MAX_ENERGY_RECHARGE) == null ? error : null;
-   }
-
-   private static String spawnError(String text) {
+    private static String spawnError(String text) {
       String error = LauncherText.format(
          "error.spawn", text, Settings.MIN_SPAWN_MULTIPLIER, Settings.MAX_SPAWN_MULTIPLIER
       );
@@ -771,12 +747,7 @@ public final class PreLauncherDialog {
       return error;
    }
 
-   private static String intervalError(String text) {
-      String error = LauncherText.format("error.neighbor", text, Settings.MAX_NEIGHBOR_INTERVAL);
-      return boundedInteger(text, 1, Settings.MAX_NEIGHBOR_INTERVAL) == null ? error : null;
-   }
-
-   private static String portError(String portText) {
+    private static String portError(String portText) {
       String error = LauncherText.format("error.port", portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT);
       return boundedInteger(portText, ServerConnection.MIN_PORT, ServerConnection.MAX_PORT) == null ? error : null;
    }

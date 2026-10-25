@@ -265,6 +265,8 @@ public final class IosMain {
                settings.energyRechargeSeconds(),
                settings.spawnMultiplier(),
                settings.neighborIntervalMinutes(),
+               // Offline helpers do not reach a server session.
+               !serverMode && settings.cashCheat(),
                localProfiles
             );
             logSessionAction("sesion_inicio", serverMode ? "servidor" : "local", accountId);
@@ -596,25 +598,26 @@ public final class IosMain {
       return new Launcher(config, listener, logicalSize());
    }
 
-   static void installRuntime(Path bundle, Path dataDir, int energyRechargeSeconds, float spawnMultiplier, int neighborIntervalMinutes) {
-      installRuntime(bundle, dataDir, energyRechargeSeconds, spawnMultiplier, neighborIntervalMinutes, List.of());
-   }
+    static void installRuntime(Path bundle, Path dataDir, int energyRechargeSeconds, float spawnMultiplier, int neighborIntervalMinutes) {
+       installRuntime(bundle, dataDir, energyRechargeSeconds, spawnMultiplier, neighborIntervalMinutes, false, List.of());
+    }
 
-   static void installRuntime(
-      Path bundle,
-      Path dataDir,
-      int energyRechargeSeconds,
-      float spawnMultiplier,
-      int neighborIntervalMinutes,
-      List<LocalProfile> localProfiles
-   ) {
-      Ios.install(
-         new PcIosPlatform(
-            bundle, dataDir, 1136, 640, energyRechargeSeconds * 1000, spawnMultiplier, neighborIntervalMinutes, localProfiles
-         )
-      );
-      Platform.installDriver(new IosDriver());
-   }
+    static void installRuntime(
+       Path bundle,
+       Path dataDir,
+       int energyRechargeSeconds,
+       float spawnMultiplier,
+       int neighborIntervalMinutes,
+       boolean cashCheat,
+       List<LocalProfile> localProfiles
+    ) {
+       Ios.install(
+          new PcIosPlatform(
+             bundle, dataDir, 1136, 640, energyRechargeSeconds * 1000, spawnMultiplier, neighborIntervalMinutes, cashCheat, localProfiles
+          )
+       );
+       Platform.installDriver(new IosDriver());
+    }
 
    /**
     * Selects the mission definition sources. LOCAL keeps the shared missions

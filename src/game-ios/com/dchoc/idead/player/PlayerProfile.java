@@ -1,4 +1,4 @@
-package com.dchoc.idead.player;
+ package com.dchoc.idead.player;
 
 import com.dchoc.hud.WindowManager;
 import com.dchoc.idead.GameEngine;
@@ -109,8 +109,9 @@ public class PlayerProfile implements CsvIDs {
       smStarterPack1Purchased = false;
       smShowApologyDialog = false;
       mLevelUpEvent = new LevelUpEvent();
-      loadDefaults();
-      GameEngine.getInstance().loadPlayerProfile();
+       loadDefaults();
+       applyCashCheatOverride();
+       GameEngine.getInstance().loadPlayerProfile();
       smSlotEvents = new SpendEvent[]{new SpendEvent(3), new SpendEvent(2), new SpendEvent(16)};
       smConsumeEvent = new ConsumeEvent();
       smEarnPCEvent = new EarnPCEvent();
@@ -287,12 +288,16 @@ public class PlayerProfile implements CsvIDs {
       smCoins = Math.max(smCoins - amount, 0);
    }
 
-   public static void removeCash(int amount) {
-      smCash -= amount;
-      MissionManager.updateCounter(106, 7, amount);
-      MissionManager.updateCounter(106, 80, amount);
-      smCash = Math.max(smCash, 0);
-   }
+    public static void removeCash(int amount) {
+       if (smCashCheatActive) {
+          smCashCheatBase = Math.max(smCashCheatBase - amount, 0);
+       } else {
+          smCash -= amount;
+          smCash = Math.max(smCash, 0);
+       }
+       MissionManager.updateCounter(106, 7, amount);
+       MissionManager.updateCounter(106, 80, amount);
+    }
 
    public static void removeFood(int amount) {
       smFood = Math.max(smFood - amount, 0);
@@ -546,12 +551,40 @@ public class PlayerProfile implements CsvIDs {
       return (int)(remaining / (seconds ? 1000L : 1L));
    }
 
-   private static void applyEnergyChargeTimeOverride() {
-      Integer override = Ios.platform().energyChargeTimeOverride();
-      if (override != null) {
-         smEnergyChargeTimeMax = override;
-      }
-   }
+    private static void applyEnergyChargeTimeOverride() {
+       Integer override = Ios.platform().energyChargeTimeOverride();
+       if (override != null) {
+          smEnergyChargeTimeMax = override;
+       }
+    }
+
+    /**
+     * The launcher's infinite-cash helper. The runtime wallet rides a high
+     * floor, while {@link #smCashCheatBase} keeps the honest balance: every
+     * real earn adds to it and every spend subtracts from it. The profile
+     * save only ever stores the honest balance, so disabling the cheat
+     * restores it instead of leaving the grant behind.
+     */
+    private static final int CASH_CHEAT_FLOOR = 9999999;
+    private static boolean smCashCheatActive;
+    private static int smCashCheatBase;
+
+    private static void applyCashCheatOverride() {
+       Boolean cheat = Ios.platform().cashCheatOverride();
+       if (cheat == null || !cheat) {
+          smCashCheatActive = false;
+          return;
+       }
+
+       // A wallet that already sits at the floor can only come from the grant
+       // itself (earlier builds wrote it into the save); an honest balance
+       // never reaches it organically. Starting the book at zero revokes it.
+       smCashCheatBase = smCash >= CASH_CHEAT_FLOOR ? 0 : smCash;
+       smCashCheatActive = true;
+       if (smCash < CASH_CHEAT_FLOOR) {
+          smCash = CASH_CHEAT_FLOOR;
+       }
+     }
 
    public static int getEnergyChargeTimeMax() {
       return smEnergyChargeTimeMax;
@@ -638,6 +671,9 @@ public class PlayerProfile implements CsvIDs {
          int cash = next.getCash();
          if (cash >= 0) {
             smCash += cash;
+            if (smCashCheatActive) {
+               smCashCheatBase += cash;
+            }
          }
 
          smEnergyMax = smEnergyMax + next.getMaxEnergyIncrease();
@@ -681,9 +717,15 @@ public class PlayerProfile implements CsvIDs {
       return current == null ? 0 : current.getXpLimit();
    }
 
-   public static void setCash(int cash) {
-      smCash = cash;
-   }
+    public static void setCash(int cash) {
+       int previous = smCash;
+       smCash = cash;
+       if (smCashCheatActive) {
+          // Pure delta bookkeeping: absolute writes that already include the
+          // runtime wallet (e.g. fixCurrencies) do not distort the base.
+          smCashCheatBase = Math.max(smCashCheatBase + (cash - previous), 0);
+       }
+     }
 
    public static void setFriendCode(String code) {
       smFriendCode = code;
@@ -758,6 +800,9 @@ public class PlayerProfile implements CsvIDs {
          case 7:
             if (amount >= 0) {
                smCash += amount;
+               if (smCashCheatActive) {
+                  smCashCheatBase += amount;
+               }
             }
 
             if (amount > 0) {
@@ -939,7 +984,8 @@ public class PlayerProfile implements CsvIDs {
       data.writeInt(smXp);
       data.writeInt(smEnergyMax);
       data.writeInt(smEnergy);
-      data.writeInt(smCash);
+      int savedCash = smCashCheatActive ? smCashCheatBase : smCash;
+      data.writeInt(savedCash);
       data.writeInt(smCoins);
       data.writeInt(smStone);
       data.writeInt(smFood);
@@ -1007,6 +1053,7 @@ public class PlayerProfile implements CsvIDs {
          }
 
          applyEnergyChargeTimeOverride();
+         applyCashCheatOverride();
          if (Integer.compareUnsigned(version - 113, 8) < 0) {
             smShowApologyDialog = true;
          }
@@ -1034,6 +1081,9 @@ public class PlayerProfile implements CsvIDs {
       if (smInitialized) {
          GameEngine engine = GameEngine.getInstance();
          smCash += cash;
+         if (smCashCheatActive) {
+            smCashCheatBase += cash;
+         }
          smCoins += coins;
          addEnergy(energy, true);
          WeaponItem weapon = (WeaponItem)ItemManager.getItem(6252);
@@ -1043,10 +1093,13 @@ public class PlayerProfile implements CsvIDs {
       }
    }
 
-   public static void addInAppPurchaseCash(int cash) {
-      boolean initialized = smInitialized;
-      smCash += cash;
-      if (initialized) {
+    public static void addInAppPurchaseCash(int cash) {
+       boolean initialized = smInitialized;
+       smCash += cash;
+       if (smCashCheatActive) {
+          smCashCheatBase += cash;
+       }
+       if (initialized) {
          GameEngine.getInstance().savePlayerProfile();
       }
    }

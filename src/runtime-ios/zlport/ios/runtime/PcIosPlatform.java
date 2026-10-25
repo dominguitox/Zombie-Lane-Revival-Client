@@ -41,11 +41,12 @@ public final class PcIosPlatform implements IosPlatform {
    private static final Logger LOG = System.getLogger("zlport.ios");
    private static final String SYSTEM_VERSION = "7.1.2";
    private static final String ADVERTISING_IDENTIFIER_KEY = "zlport.ios.advertisingIdentifier";
-   private final Path bundleDir;
-   private final int energyChargeTimeMs;
-   private final float spawnMultiplier;
-   private final long neighborIntervalMs;
-   private final List<LocalProfile> localProfiles;
+    private final Path bundleDir;
+    private final int energyChargeTimeMs;
+    private final float spawnMultiplier;
+    private final long neighborIntervalMs;
+    private final boolean cashCheat;
+    private final List<LocalProfile> localProfiles;
    private final Path cachesDir;
    private final Path preferencesFile;
    private final PlayerActionLog playerActionLog;
@@ -67,26 +68,28 @@ public final class PcIosPlatform implements IosPlatform {
       this(bundleDir, dataDir, screenWidth, screenHeight, energyChargeTimeMs, spawnMultiplier, 0);
    }
 
-   public PcIosPlatform(
-      Path bundleDir, Path dataDir, int screenWidth, int screenHeight, int energyChargeTimeMs, float spawnMultiplier, int neighborIntervalMinutes
-   ) {
-      this(bundleDir, dataDir, screenWidth, screenHeight, energyChargeTimeMs, spawnMultiplier, neighborIntervalMinutes, List.of());
-   }
+    public PcIosPlatform(
+       Path bundleDir, Path dataDir, int screenWidth, int screenHeight, int energyChargeTimeMs, float spawnMultiplier, int neighborIntervalMinutes
+    ) {
+       this(bundleDir, dataDir, screenWidth, screenHeight, energyChargeTimeMs, spawnMultiplier, neighborIntervalMinutes, false, List.of());
+    }
 
-   public PcIosPlatform(
-      Path bundleDir,
-      Path dataDir,
-      int screenWidth,
-      int screenHeight,
-      int energyChargeTimeMs,
-      float spawnMultiplier,
-      int neighborIntervalMinutes,
-      List<LocalProfile> localProfiles
-   ) {
-      this.energyChargeTimeMs = energyChargeTimeMs;
-      this.spawnMultiplier = spawnMultiplier;
-      this.neighborIntervalMs = neighborIntervalMinutes * 60000L;
-      this.localProfiles = List.copyOf(localProfiles);
+    public PcIosPlatform(
+       Path bundleDir,
+       Path dataDir,
+       int screenWidth,
+       int screenHeight,
+       int energyChargeTimeMs,
+       float spawnMultiplier,
+       int neighborIntervalMinutes,
+       boolean cashCheat,
+       List<LocalProfile> localProfiles
+    ) {
+       this.energyChargeTimeMs = energyChargeTimeMs;
+       this.spawnMultiplier = spawnMultiplier;
+       this.neighborIntervalMs = neighborIntervalMinutes * 60000L;
+       this.cashCheat = cashCheat;
+       this.localProfiles = List.copyOf(localProfiles);
       this.bundleDir = Objects.requireNonNull(bundleDir).toAbsolutePath().normalize();
       Path data = Objects.requireNonNull(dataDir).toAbsolutePath().normalize();
       this.cachesDir = data.resolve("Library/Caches");
@@ -655,11 +658,15 @@ public final class PcIosPlatform implements IosPlatform {
       ignored("AdManagerShowAd");
    }
 
-   public Integer energyChargeTimeOverride() {
-      return this.energyChargeTimeMs > 0 ? this.energyChargeTimeMs : null;
-   }
+    public Integer energyChargeTimeOverride() {
+       return this.energyChargeTimeMs > 0 ? this.energyChargeTimeMs : null;
+    }
 
-   public Float spawnMultiplierOverride() {
+    public Boolean cashCheatOverride() {
+       return this.cashCheat ? Boolean.TRUE : null;
+    }
+
+    public Float spawnMultiplierOverride() {
       return this.spawnMultiplier > 1.0F ? this.spawnMultiplier : null;
    }
 

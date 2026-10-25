@@ -143,9 +143,12 @@ public interface IosPlatform {
 
    boolean httpHeadHasResponse(String var1);
 
-   Integer energyChargeTimeOverride();
+    Integer energyChargeTimeOverride();
 
-   Float spawnMultiplierOverride();
+    /** Boolean.TRUE when the launcher asks for infinite cash; null means no request. */
+    Boolean cashCheatOverride();
+
+    Float spawnMultiplierOverride();
 
    Long neighborIntervalOverride();
 
