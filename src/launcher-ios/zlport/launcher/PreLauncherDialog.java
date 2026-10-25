@@ -88,10 +88,11 @@ public final class PreLauncherDialog {
        String level,
        String spawn,
        String energyRecharge,
-       boolean cashCheat
+       boolean cashCheat,
+       boolean restoreDefaults
     ) {
        static final Fields EMPTY =
-          new Fields(false, "", "", "", "", "", "", false, false, true, true, false, "INFO", "", "", false);
+          new Fields(false, "", "", "", "", "", "", false, false, true, true, false, "INFO", "", "", false, false);
     }
 
    private final Path dataRoot;
@@ -125,7 +126,9 @@ public final class PreLauncherDialog {
    private JCheckBox fullscreenBox;
     private JCheckBox pauseFocusBox;
     private JCheckBox audioBox;
-    private JCheckBox glDebugBox;
+     private JCheckBox glDebugBox;
+    private JCheckBox showConsoleBox;
+    private boolean defaultsRestored;
     private JComboBox<String> levelBox;
     private JTextField spawnField;
     private JCheckBox infiniteEnergyBox;
@@ -400,6 +403,11 @@ public final class PreLauncherDialog {
       section.add(this.infiniteEnergyBox, c);
       section.add(this.cashCheatBox, nextCell(c));
 
+      c = this.nextRow(c);
+      JButton reset = new JButton(LauncherText.get("button.safeDefaults"));
+      reset.addActionListener(action -> this.restoreSafeDefaults());
+      section.add(reset, c);
+
       content.add(section, sectionConstraints(row++));
       return row;
    }
@@ -424,6 +432,11 @@ public final class PreLauncherDialog {
       this.glDebugBox = new JCheckBox(LauncherText.get("check.glDebug"));
       advanced.add(this.glDebugBox, c);
 
+      c = this.nextRow(c);
+      this.showConsoleBox = new JCheckBox(LauncherText.get("check.showConsole"));
+      this.showConsoleBox.setSelected(this.seed.showConsole());
+      advanced.add(this.showConsoleBox, c);
+
       // Dev editions only: the src-release body adds nothing, so the player
       // binary has no dev missions field at all.
       c = newSectionConstraints();
@@ -436,8 +449,9 @@ public final class PreLauncherDialog {
    }
 
    /** Applies the selected profile's options, or the defaults when no profile exists. */
-   private void reapplyOptions() {
-      Settings settings = Settings.defaults();
+    private void reapplyOptions() {
+       this.defaultsRestored = false;
+       Settings settings = Settings.defaults();
       if (this.profileBox != null) {
          Object item = this.profileBox.getSelectedItem();
          if (item instanceof LocalProfiles.ProfileInfo profile) {
@@ -464,6 +478,23 @@ public final class PreLauncherDialog {
        this.spawnField.setText(String.valueOf(settings.spawnMultiplier()));
        this.infiniteEnergyBox.setSelected(settings.energyRechargeSeconds() == 1);
        this.cashCheatBox.setSelected(settings.cashCheat());
+    }
+
+    /** Restores conservative game defaults without changing profile or connection selection. */
+    private void restoreSafeDefaults() {
+       this.defaultsRestored = true;
+       this.currentSettings = Settings.defaults();
+       this.widthField.setText("1136");
+       this.heightField.setText("640");
+       this.maximizedBox.setSelected(false);
+       this.fullscreenBox.setSelected(false);
+       this.pauseFocusBox.setSelected(true);
+       this.audioBox.setSelected(true);
+       this.glDebugBox.setSelected(false);
+       this.levelBox.setSelectedItem("INFO");
+       this.spawnField.setText(String.valueOf(Settings.SPAWN_MULTIPLIER_DEFAULT));
+       this.infiniteEnergyBox.setSelected(false);
+       this.cashCheatBox.setSelected(false);
     }
 
    private void createProfile() {
@@ -608,7 +639,8 @@ public final class PreLauncherDialog {
           String.valueOf(this.levelBox.getSelectedItem()),
           this.spawnField.getText(),
           this.energyRechargeValue(),
-          this.cashCheatBox.isSelected()
+          this.cashCheatBox.isSelected(),
+          this.defaultsRestored
        );
     }
 
@@ -638,6 +670,10 @@ public final class PreLauncherDialog {
        values.put(Settings.GL_DEBUG, String.valueOf(f.glDebug()));
        values.put(Settings.LOG_LEVEL, f.level().strip().toUpperCase(Locale.ROOT));
        values.put(Settings.SPAWN_MULTIPLIER, f.spawn().strip().replace(',', '.'));
+       if (f.restoreDefaults()) {
+          values.put(Settings.WHEEL_STEP, "1.06");
+          values.put(Settings.NEIGHBOR_INTERVAL, String.valueOf(Settings.NEIGHBOR_INTERVAL_DEFAULT));
+       }
        // Offline helpers only: server sessions leave energia.recarga and the
        // cash cheat untouched (roda.passo and vizinho.intervalo stay only in
        // the file, for manual tuning).
@@ -829,13 +865,13 @@ public final class PreLauncherDialog {
              Settings.saveLauncherOptions(profile.directory(), window, optionValues(f));
              PreLauncherState.of(
                 mode, host, port, user, this.rememberUser.isSelected(), profile.id(), devMissions, LauncherText.currentCode()
-             ).save(this.dataRoot);
+              ).withShowConsole(this.showConsoleBox.isSelected()).save(this.dataRoot);
              this.result = Optional.of(new Selection(profile.directory(), profile, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
           } else {
              Settings.saveLauncherOptions(this.dataRoot, window, optionValues(f));
              PreLauncherState.of(
                 mode, host, port, user, this.rememberUser.isSelected(), this.seed.lastProfile(), devMissions, LauncherText.currentCode()
-             ).save(this.dataRoot);
+              ).withShowConsole(this.showConsoleBox.isSelected()).save(this.dataRoot);
              this.result = Optional.of(new Selection(this.dataRoot, null, mode, server, user, authenticatedAccountId, this.rememberUser.isSelected(), devMissions));
           }
       } catch (IOException | RuntimeException exception) {

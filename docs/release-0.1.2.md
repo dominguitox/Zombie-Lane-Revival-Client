@@ -53,6 +53,20 @@ The package must be rebuilt to include these later source changes.
   Startup diagnostics are summarized after game loading; real failures retain
   their stack trace.
 
+## Launcher safety and console visibility (added 2026-10-25)
+
+- The generated Windows launcher starts the game with `javaw.exe` by default,
+  so no CMD window remains open while playing. The Advanced option `Show CMD
+  on next launch` stores `console.visible=true` in the global
+  `launcher.properties`; it takes effect the next time the generated batch
+  launcher runs. With it enabled, the launcher uses `java.exe` and keeps the
+  console available. Game logs continue to be written to the normal log file.
+- `Restore safe defaults` resets game options for the selected profile without
+  changing the selected profile or connection details: 1136x640 windowed (not
+  maximized/fullscreen), audio on, normal energy recharge (30 seconds), normal
+  zombie multiplier (2.0), normal wheel zoom and neighbor interval, cheats
+  off, INFO logging and GL debug off. The reset is saved when Play is confirmed.
+
 ### Investigation log: reversibility report (2026-10-25, closed)
 
 The first live test of the cash helper reported that a floor value kept

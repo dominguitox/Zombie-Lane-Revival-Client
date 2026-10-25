@@ -24,6 +24,10 @@ The format follows Keep a Changelog, and versions use the alpha `0.1.x` scheme.
   0–100 volume sliders (0 mutes audio).
 - Startup logs summarize expected resource misses and end-of-file probes;
   actual failures keep their stack traces.
+- The generated Windows launcher hides the CMD window by default; an
+  opt-in setting can show it on the next launch.
+- The launcher can restore conservative game defaults, including a
+  windowed 1136x640 display and disabled cheats.
 
 ## [0.1.1] - 2026-10-23
 

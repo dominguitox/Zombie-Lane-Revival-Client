@@ -80,7 +80,7 @@ The `0.1.2` package does not include `mission-backups` or three stale root files
 
 ### Version 0.1.2
 
-`0.1.2` includes the launcher validation fixes over `0.1.1`, local offline energy and cash cheats, a smaller launcher options screen, in-game music and sound-effect volume sliders, and quieter startup diagnostics. Rebuild the package from the current source tree to include the changes added after the first `0.1.2` build. The loading-screen crash remains under investigation.
+`0.1.2` includes the launcher validation fixes over `0.1.1`, local offline energy and cash cheats, a smaller launcher options screen, in-game music and sound-effect volume sliders, quieter startup diagnostics, a hidden console by default with an opt-in CMD setting, and a safe-defaults button. Rebuild the package from the current source tree to include the later changes. The loading-screen crash remains under investigation.
 
 The `0.1.1` release introduced the local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included. The loading-screen crash is still under investigation.
 

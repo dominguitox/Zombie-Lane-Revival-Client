@@ -34,6 +34,7 @@ public final class PreLauncherState {
    static final String REMEMBER_USER = "server.remember-user";
    static final String LAST_PROFILE = "profile.last";
    static final String LANGUAGE = "language";
+   static final String SHOW_CONSOLE = "console.visible";
    /** Dev editions only: shared missions directory; empty value = the default. */
    static final String DEV_MISSIONS = "dev.missions-directory";
 
@@ -45,12 +46,17 @@ public final class PreLauncherState {
    private final String lastProfile;
    private final String devMissions;
    private final String language;
+   private final boolean showConsole;
 
    private static final Mode DEFAULT_MODE = Mode.SERVER;
    private static final String DEFAULT_HOST = "127.0.0.1";
    private static final int DEFAULT_PORT = 6767;
 
    private PreLauncherState(Mode mode, String host, int port, String user, boolean rememberUser, String lastProfile, String devMissions, String language) {
+      this(mode, host, port, user, rememberUser, lastProfile, devMissions, language, false);
+   }
+
+   private PreLauncherState(Mode mode, String host, int port, String user, boolean rememberUser, String lastProfile, String devMissions, String language, boolean showConsole) {
       this.mode = mode == null ? DEFAULT_MODE : mode;
       this.host = host == null ? "" : host.strip();
       this.port = port;
@@ -59,6 +65,7 @@ public final class PreLauncherState {
       this.lastProfile = lastProfile == null ? "" : lastProfile.strip();
       this.devMissions = devMissions == null ? "" : devMissions.strip();
       this.language = LauncherLanguage.normalize(language).orElse("");
+      this.showConsole = showConsole;
    }
 
    /** Builds a state validating the field values: invalid ones fall back to their defaults. */
@@ -136,7 +143,8 @@ public final class PreLauncherState {
          lastProfile = "";
       }
       String language = LauncherLanguage.normalize(p.getProperty(LANGUAGE, "").strip()).orElse("");
-      return new PreLauncherState(mode, host, port, user, remember, lastProfile, devMissions, language);
+      boolean showConsole = Boolean.parseBoolean(p.getProperty(SHOW_CONSOLE, "false").strip());
+      return new PreLauncherState(mode, host, port, user, remember, lastProfile, devMissions, language, showConsole);
    }
 
    /** Writes the file atomically (temporary file then move). */
@@ -177,6 +185,7 @@ public final class PreLauncherState {
          // Hand-rolled writer: escape backslashes the way java.util.Properties reads them.
          s.append(DEV_MISSIONS).append('=').append(this.devMissions.replace("\\", "\\\\")).append(n);
       }
+      s.append(SHOW_CONSOLE).append('=').append(this.showConsole).append(n);
       return s.toString();
    }
 
@@ -217,6 +226,10 @@ public final class PreLauncherState {
       return this.language;
    }
 
+   public boolean showConsole() {
+      return this.showConsole;
+   }
+
    public PreLauncherState withUser(String user) {
       return new PreLauncherState(this.mode, this.host, this.port, user, this.rememberUser, this.lastProfile, this.devMissions, this.language);
    }
@@ -226,6 +239,10 @@ public final class PreLauncherState {
    }
 
    public PreLauncherState withLanguage(String language) {
-      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, this.devMissions, language);
+      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, this.devMissions, language, this.showConsole);
+   }
+
+   public PreLauncherState withShowConsole(boolean showConsole) {
+      return new PreLauncherState(this.mode, this.host, this.port, this.user, this.rememberUser, this.lastProfile, this.devMissions, this.language, showConsole);
    }
 }
