@@ -78,11 +78,11 @@ powershell -ExecutionPolicy Bypass -File tools\build-client.ps1 `
 
 ## Known issues
 
-- The loading-screen crash is still under investigation. It is an NPE in
-  `DCiDead.drawLoadingScreen` when
-  `smLoadingScreen.getCollisionBox(1)` returns `null` before `getY()` is
-  called. It is not caused by the language changes and is not fixed in this
-  release.
+- An inherited development note claimed a possible loading-screen NPE in
+  `DCiDead.drawLoadingScreen` when `smLoadingScreen.getCollisionBox(1)` returns
+  `null`. No reporter or reproduction was recorded; the maintainer reports
+  never observing it. Treat this as unverified historical documentation, not
+  a confirmed issue in the current release.
 - There is no automated GUI test for the launcher. Verification covers
   compilation, headless smoke, validation and language logic.
 - Localized server-provided text is outside this release.

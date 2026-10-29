@@ -290,9 +290,12 @@ the game.
 The source `Launcher.run()` does not install `OfflineNetwork`; that class remains
 dormant in the source tree. The packaged `launcher.jar` may contain the earlier
 offline implementation. In LOCAL mode, `IosMain` installs `OfflineNetwork`
-explicitly; this does not establish that historical external services are
-available or safe to use, and in local mode the client reaches only a
- configured server if one runs.
+explicitly, so game HTTP/HTTPS requests fail before opening sockets. The
+separate diagnostic-report client can still upload only after explicit alpha
+consent and with a per-tester key. In LOCAL mode the launcher's manual connection
+check probes only the report receiver; game server and public status checks are
+reserved for SERVER mode. Availability of hosted services is independent of
+local gameplay.
 
 The port has compatibility gaps beyond whole platform features. Some methods
 are explicit `UnsupportedOperationException` stubs, some are tracked by

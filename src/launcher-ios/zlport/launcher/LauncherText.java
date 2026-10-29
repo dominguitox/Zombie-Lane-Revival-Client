@@ -13,7 +13,7 @@ public final class LauncherText {
       "button.cancel", "Cancel",
       "button.privacy", "Privacy...",
       "button.createProfile", "Create new profile...",
-      "button.probe", "Test connection",
+       "button.probe", "Test connections",
       "button.safeDefaults", "Restore safe defaults",
       "button.start", "Start",
       "button.create", "Create",
@@ -80,15 +80,38 @@ public final class LauncherText {
       "error.endpointFormat", "Enter a HOST:PORT address, for example 192.168.1.10:6767",
       "error.endpointFormatGiven", "Enter a HOST:PORT address, for example 192.168.1.10:6767, not '{0}'",
       "error.authInvalid", "Invalid authentication response.",
-      "probe.checking", "Checking {0} ...",
-      "probe.ok", "OK: server responds at {0}",
-      "probe.noResponse", "No response from server ({0})",
+       "probe.checking", "Checking {0} ...",
+       "probe.ok", "OK: server responds at {0}",
+       "probe.noResponse", "No response from server ({0})",
+        "probe.checkingAll", "Checking all services (read-only GET requests)...",
+        "probe.checkingReports", "Checking only the reports receiver (read-only GET)...",
+       "probe.resultsTitle", "Connection check results",
+       "probe.summary", "Available: {0}/{1}",
+       "probe.service.game", "Game server",
+       "probe.service.web", "Public web app",
+       "probe.service.snapshot", "Public status data",
+       "probe.service.reports", "Reports receiver",
+       "probe.result.ok", "OK",
+       "probe.result.fail", "UNAVAILABLE",
+       "probe.note", "Only GET requests are sent. No username, password or report is sent; public hosts may log your IP.",
+       "probe.error.http", "HTTP {0}",
+       "probe.error.notDeployed", "Not deployed (HTTP 404)",
+       "probe.error.redirect", "Redirect HTTP {0} was not followed",
+       "probe.error.contentType", "Unexpected content type",
+       "probe.error.snapshotInvalid", "Public status data is invalid",
+       "probe.error.snapshotStale", "Public status data is stale",
+       "probe.error.serverOffline", "Snapshot says the game server is offline",
+       "probe.error.unexpected", "Unexpected health response",
+       "probe.error.timeout", "Timed out",
+       "probe.error.dns", "DNS lookup failed",
+       "probe.error.tls", "TLS or certificate error",
+       "probe.error.network", "Network error",
       "language.title", "Language",
       "language.prompt", "Choose the language for the launcher and the game.",
       "language.label", "Language:",
       "language.note", "You can change it later in the game settings.",
       "alpha.title", "Zombie Lane alpha: diagnostic reports",
-      "alpha.question", "Send diagnostic reports to the alpha server?",
+      "alpha.question", "Send one diagnostic report per session to reports.jorgelio.cl?",
       "alpha.details", "What is sent:\n"
          + "  - Technical session log (errors, warnings and timings).\n"
          + "  - Game actions recorded by the game (no passwords).\n"
@@ -96,8 +119,8 @@ public final class LauncherText {
          + "  - Your alpha user name and account identifier.\n\n"
          + "What is NOT sent:\n"
          + "  - Passwords or the saved game.\n\n"
-         + "The alpha server keeps reports for 30 days. The organizer may keep\n"
-         + "copies of this alpha for longer.\n\n"
+          + "Reports are sent over HTTPS to reports.jorgelio.cl and kept for 30 days.\n"
+          + "The web host will also receive your IP address.\n\n"
          + "You can change this choice at any time with the Privacy button\n"
          + "in the launcher.",
       "alpha.accept", "Accept and send",
@@ -109,7 +132,7 @@ public final class LauncherText {
       "button.cancel", "Cancelar",
       "button.privacy", "Privacidad...",
       "button.createProfile", "Crear perfil nuevo...",
-      "button.probe", "Probar conexión",
+       "button.probe", "Probar conexiones",
       "button.safeDefaults", "Restaurar ajustes seguros",
       "button.start", "Iniciar",
       "button.create", "Crear",
@@ -175,15 +198,38 @@ public final class LauncherText {
       "error.endpointFormat", "Escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767",
       "error.endpointFormatGiven", "Escribe una dirección HOST:PUERTO, por ejemplo 192.168.1.10:6767, no '{0}'",
       "error.authInvalid", "Respuesta de autenticación inválida.",
-      "probe.checking", "Comprobando {0} ...",
-      "probe.ok", "OK: el servidor responde en {0}",
-      "probe.noResponse", "Sin respuesta del servidor ({0})",
+       "probe.checking", "Comprobando {0} ...",
+       "probe.ok", "OK: el servidor responde en {0}",
+       "probe.noResponse", "Sin respuesta del servidor ({0})",
+        "probe.checkingAll", "Comprobando todos los servicios (solo solicitudes GET)...",
+        "probe.checkingReports", "Comprobando solo el receptor de informes (GET de solo lectura)...",
+       "probe.resultsTitle", "Resultados de conexión",
+       "probe.summary", "Disponibles: {0}/{1}",
+       "probe.service.game", "Servidor de juego",
+       "probe.service.web", "Web pública",
+       "probe.service.snapshot", "Datos de estado público",
+       "probe.service.reports", "Receptor de informes",
+       "probe.result.ok", "OK",
+       "probe.result.fail", "NO DISPONIBLE",
+       "probe.note", "Solo se envían solicitudes GET. No se envía usuario, contraseña ni informe; los sitios públicos podrían registrar tu IP.",
+       "probe.error.http", "HTTP {0}",
+       "probe.error.notDeployed", "No desplegado (HTTP 404)",
+       "probe.error.redirect", "Redirección HTTP {0} no seguida",
+       "probe.error.contentType", "Tipo de respuesta inesperado",
+       "probe.error.snapshotInvalid", "Los datos públicos no son válidos",
+       "probe.error.snapshotStale", "Los datos públicos están desactualizados",
+       "probe.error.serverOffline", "El estado público indica que el servidor está desconectado",
+       "probe.error.unexpected", "Respuesta de estado inesperada",
+       "probe.error.timeout", "Tiempo de espera agotado",
+       "probe.error.dns", "No se pudo resolver el dominio",
+       "probe.error.tls", "Error TLS o del certificado",
+       "probe.error.network", "Error de red",
       "language.title", "Idioma",
       "language.prompt", "Elige el idioma del lanzador y del juego.",
       "language.label", "Idioma:",
       "language.note", "Puedes cambiarlo más tarde en las opciones del juego.",
       "alpha.title", "Zombie Lane alpha: informes de diagnóstico",
-      "alpha.question", "¿Enviar informes de diagnóstico al servidor de la alpha?",
+       "alpha.question", "¿Enviar un informe de diagnóstico por sesión a reports.jorgelio.cl?",
       "alpha.details", "Qué se envía:\n"
          + "  - Registro técnico de la sesión (errores, avisos y tiempos).\n"
          + "  - Acciones de juego registradas por el juego (sin contraseñas).\n"
@@ -191,8 +237,8 @@ public final class LauncherText {
          + "  - Tu nombre de usuario de la alpha y el identificador de cuenta.\n\n"
          + "Qué NO se envía:\n"
          + "  - Contraseñas ni la partida guardada.\n\n"
-         + "El servidor de la alpha conserva los informes 30 días. El organizador\n"
-         + "puede conservar copias de esta alpha durante más tiempo.\n\n"
+          + "Los informes se envían por HTTPS a reports.jorgelio.cl y se conservan 30 días.\n"
+          + "El hosting también recibirá tu dirección IP.\n\n"
          + "Puedes cambiar esta elección cuando quieras con el botón Privacidad\n"
          + "del lanzador.",
       "alpha.accept", "Aceptar y enviar",
@@ -204,7 +250,7 @@ public final class LauncherText {
       "button.cancel", "Annuler",
       "button.privacy", "Confidentialité...",
       "button.createProfile", "Créer un profil...",
-      "button.probe", "Tester la connexion",
+       "button.probe", "Tester les services",
       "button.safeDefaults", "Restaurer les réglages sûrs",
       "button.start", "Démarrer",
       "button.create", "Créer",
@@ -270,15 +316,38 @@ public final class LauncherText {
       "error.endpointFormat", "Saisissez une adresse HOST:PORT, par exemple 192.168.1.10:6767",
       "error.endpointFormatGiven", "Saisissez une adresse HOST:PORT, par exemple 192.168.1.10:6767, et non '{0}'",
       "error.authInvalid", "Réponse d’authentification invalide.",
-      "probe.checking", "Vérification de {0} ...",
-      "probe.ok", "OK : le serveur répond à {0}",
-      "probe.noResponse", "Aucune réponse du serveur ({0})",
+       "probe.checking", "Vérification de {0} ...",
+       "probe.ok", "OK : le serveur répond à {0}",
+       "probe.noResponse", "Aucune réponse du serveur ({0})",
+        "probe.checkingAll", "Vérification des services (requêtes GET uniquement)...",
+        "probe.checkingReports", "Vérification du seul récepteur de rapports (GET uniquement)...",
+       "probe.resultsTitle", "Résultats de la vérification",
+       "probe.summary", "Disponibles : {0}/{1}",
+       "probe.service.game", "Serveur de jeu",
+       "probe.service.web", "Site public",
+       "probe.service.snapshot", "Données d’état public",
+       "probe.service.reports", "Récepteur de rapports",
+       "probe.result.ok", "OK",
+       "probe.result.fail", "INDISPONIBLE",
+       "probe.note", "Seules des requêtes GET sont envoyées. Aucun compte, mot de passe ou rapport n’est transmis ; les sites publics peuvent enregistrer votre IP.",
+       "probe.error.http", "HTTP {0}",
+       "probe.error.notDeployed", "Non déployé (HTTP 404)",
+       "probe.error.redirect", "Redirection HTTP {0} non suivie",
+       "probe.error.contentType", "Type de contenu inattendu",
+       "probe.error.snapshotInvalid", "Les données publiques sont invalides",
+       "probe.error.snapshotStale", "Les données publiques sont obsolètes",
+       "probe.error.serverOffline", "L’état public indique que le serveur est hors ligne",
+       "probe.error.unexpected", "Réponse de santé inattendue",
+       "probe.error.timeout", "Délai dépassé",
+       "probe.error.dns", "Échec de résolution DNS",
+       "probe.error.tls", "Erreur TLS ou de certificat",
+       "probe.error.network", "Erreur réseau",
       "language.title", "Langue",
       "language.prompt", "Choisissez la langue du lanceur et du jeu.",
       "language.label", "Langue :",
       "language.note", "Vous pourrez la modifier plus tard dans les options du jeu.",
       "alpha.title", "Zombie Lane alpha : rapports de diagnostic",
-      "alpha.question", "Envoyer les rapports de diagnostic au serveur de l’alpha ?",
+       "alpha.question", "Envoyer un rapport par session à reports.jorgelio.cl ?",
       "alpha.details", "Ce qui est envoyé :\n"
          + "  - Journal technique de la session (erreurs, avertissements et durées).\n"
          + "  - Actions de jeu enregistrées par le jeu (sans mots de passe).\n"
@@ -286,8 +355,8 @@ public final class LauncherText {
          + "  - Votre nom d’utilisateur alpha et l’identifiant de compte.\n\n"
          + "Ce qui n’est PAS envoyé :\n"
          + "  - Les mots de passe ni la sauvegarde.\n\n"
-         + "Le serveur de l’alpha conserve les rapports 30 jours. L’organisateur\n"
-         + "peut conserver des copies de cette alpha plus longtemps.\n\n"
+          + "Envoi HTTPS vers reports.jorgelio.cl ; conservation pendant 30 jours.\n"
+          + "L'hébergement reçoit aussi votre adresse IP.\n\n"
          + "Vous pouvez modifier ce choix à tout moment avec le bouton Confidentialité\n"
          + "du lanceur.",
       "alpha.accept", "Accepter et envoyer",
@@ -299,7 +368,7 @@ public final class LauncherText {
       "button.cancel", "Annulla",
       "button.privacy", "Privacy...",
       "button.createProfile", "Crea nuovo profilo...",
-      "button.probe", "Prova connessione",
+       "button.probe", "Prova i servizi",
       "button.safeDefaults", "Ripristina impostazioni sicure",
       "button.start", "Avvia",
       "button.create", "Crea",
@@ -365,15 +434,38 @@ public final class LauncherText {
       "error.endpointFormat", "Scrivi un indirizzo HOST:PORT, ad esempio 192.168.1.10:6767",
       "error.endpointFormatGiven", "Scrivi un indirizzo HOST:PORT, ad esempio 192.168.1.10:6767, non '{0}'",
       "error.authInvalid", "Risposta di autenticazione non valida.",
-      "probe.checking", "Verifica di {0} ...",
-      "probe.ok", "OK: il server risponde su {0}",
-      "probe.noResponse", "Nessuna risposta dal server ({0})",
+       "probe.checking", "Verifica di {0} ...",
+       "probe.ok", "OK: il server risponde su {0}",
+       "probe.noResponse", "Nessuna risposta dal server ({0})",
+        "probe.checkingAll", "Verifica dei servizi (solo richieste GET)...",
+        "probe.checkingReports", "Verifica del solo ricevitore dei rapporti (solo GET)...",
+       "probe.resultsTitle", "Risultati della verifica",
+       "probe.summary", "Disponibili: {0}/{1}",
+       "probe.service.game", "Server di gioco",
+       "probe.service.web", "Sito web pubblico",
+       "probe.service.snapshot", "Dati di stato pubblici",
+       "probe.service.reports", "Ricevitore dei rapporti",
+       "probe.result.ok", "OK",
+       "probe.result.fail", "NON DISPONIBILE",
+       "probe.note", "Vengono inviate solo richieste GET. Nessun account, password o rapporto; i siti pubblici possono registrare il tuo IP.",
+       "probe.error.http", "HTTP {0}",
+       "probe.error.notDeployed", "Non distribuito (HTTP 404)",
+       "probe.error.redirect", "Reindirizzamento HTTP {0} non seguito",
+       "probe.error.contentType", "Tipo di contenuto imprevisto",
+       "probe.error.snapshotInvalid", "I dati di stato pubblici non sono validi",
+       "probe.error.snapshotStale", "I dati di stato pubblici non sono aggiornati",
+       "probe.error.serverOffline", "Lo stato pubblico indica che il server è offline",
+       "probe.error.unexpected", "Risposta di stato imprevista",
+       "probe.error.timeout", "Tempo scaduto",
+       "probe.error.dns", "Risoluzione DNS non riuscita",
+       "probe.error.tls", "Errore TLS o del certificato",
+       "probe.error.network", "Errore di rete",
       "language.title", "Lingua",
       "language.prompt", "Scegli la lingua del launcher e del gioco.",
       "language.label", "Lingua:",
       "language.note", "Puoi cambiarla più tardi nelle opzioni del gioco.",
       "alpha.title", "Zombie Lane alpha: rapporti di diagnostica",
-      "alpha.question", "Inviare i rapporti di diagnostica al server dell'alpha?",
+       "alpha.question", "Inviare un rapporto per sessione a reports.jorgelio.cl?",
       "alpha.details", "Cosa viene inviato:\n"
          + "  - Log tecnico della sessione (errori, avvisi e tempi).\n"
          + "  - Azioni di gioco registrate dal gioco (senza password).\n"
@@ -381,8 +473,8 @@ public final class LauncherText {
          + "  - Il tuo nome utente alpha e l'identificativo dell'account.\n\n"
          + "Cosa NON viene inviato:\n"
          + "  - Password o partita salvata.\n\n"
-         + "Il server dell'alpha conserva i rapporti per 30 giorni. L'organizzatore\n"
-         + "può conservare copie di questa alpha più a lungo.\n\n"
+          + "Invio HTTPS a reports.jorgelio.cl; conservazione per 30 giorni.\n"
+          + "L'hosting riceve anche il tuo indirizzo IP.\n\n"
          + "Puoi cambiare questa scelta in qualsiasi momento con il pulsante Privacy\n"
          + "del launcher.",
       "alpha.accept", "Accetta e invia",
@@ -394,7 +486,7 @@ public final class LauncherText {
       "button.cancel", "Abbrechen",
       "button.privacy", "Datenschutz...",
       "button.createProfile", "Neues Profil erstellen...",
-      "button.probe", "Verbindung testen",
+       "button.probe", "Dienste prüfen",
       "button.safeDefaults", "Sichere Einstellungen wiederherstellen",
       "button.start", "Starten",
       "button.create", "Erstellen",
@@ -460,15 +552,38 @@ public final class LauncherText {
       "error.endpointFormat", "Gib eine HOST:PORT-Adresse ein, zum Beispiel 192.168.1.10:6767",
       "error.endpointFormatGiven", "Gib eine HOST:PORT-Adresse ein, zum Beispiel 192.168.1.10:6767, nicht '{0}'",
       "error.authInvalid", "Ungültige Authentifizierungsantwort.",
-      "probe.checking", "Prüfe {0} ...",
-      "probe.ok", "OK: Server antwortet unter {0}",
-      "probe.noResponse", "Keine Antwort vom Server ({0})",
+       "probe.checking", "Prüfe {0} ...",
+       "probe.ok", "OK: Server antwortet unter {0}",
+       "probe.noResponse", "Keine Antwort vom Server ({0})",
+        "probe.checkingAll", "Prüfe alle Dienste (nur GET-Anfragen)...",
+        "probe.checkingReports", "Prüfe nur den Berichtsempfänger (nur GET)...",
+       "probe.resultsTitle", "Ergebnisse der Verbindungsprüfung",
+       "probe.summary", "Verfügbar: {0}/{1}",
+       "probe.service.game", "Spielserver",
+       "probe.service.web", "Öffentliche Website",
+       "probe.service.snapshot", "Öffentliche Statusdaten",
+       "probe.service.reports", "Berichtsempfänger",
+       "probe.result.ok", "OK",
+       "probe.result.fail", "NICHT VERFÜGBAR",
+       "probe.note", "Es werden nur GET-Anfragen gesendet. Keine Kontodaten, Passwörter oder Berichte; öffentliche Hosts können deine IP protokollieren.",
+       "probe.error.http", "HTTP {0}",
+       "probe.error.notDeployed", "Nicht bereitgestellt (HTTP 404)",
+       "probe.error.redirect", "HTTP-Weiterleitung {0} wurde nicht verfolgt",
+       "probe.error.contentType", "Unerwarteter Inhaltstyp",
+       "probe.error.snapshotInvalid", "Öffentliche Statusdaten sind ungültig",
+       "probe.error.snapshotStale", "Öffentliche Statusdaten sind veraltet",
+       "probe.error.serverOffline", "Laut öffentlichem Status ist der Spielserver offline",
+       "probe.error.unexpected", "Unerwartete Statusantwort",
+       "probe.error.timeout", "Zeitüberschreitung",
+       "probe.error.dns", "DNS-Auflösung fehlgeschlagen",
+       "probe.error.tls", "TLS- oder Zertifikatsfehler",
+       "probe.error.network", "Netzwerkfehler",
       "language.title", "Sprache",
       "language.prompt", "Wähle die Sprache für Launcher und Spiel.",
       "language.label", "Sprache:",
       "language.note", "Du kannst sie später in den Spieloptionen ändern.",
       "alpha.title", "Zombie Lane Alpha: Diagnoseberichte",
-      "alpha.question", "Diagnoseberichte an den Alpha-Server senden?",
+       "alpha.question", "Einen Bericht pro Sitzung an reports.jorgelio.cl senden?",
       "alpha.details", "Was gesendet wird:\n"
          + "  - Technisches Sitzungsprotokoll (Fehler, Warnungen und Zeiten).\n"
          + "  - Vom Spiel aufgezeichnete Aktionen (ohne Passwörter).\n"
@@ -476,8 +591,8 @@ public final class LauncherText {
          + "  - Dein Alpha-Benutzername und die Konto-ID.\n\n"
          + "Was NICHT gesendet wird:\n"
          + "  - Passwörter oder der Spielstand.\n\n"
-         + "Der Alpha-Server speichert Berichte 30 Tage. Der Organisator kann\n"
-         + "Kopien dieser Alpha länger aufbewahren.\n\n"
+          + "HTTPS-Übertragung an reports.jorgelio.cl; Aufbewahrung 30 Tage.\n"
+          + "Der Webhost sieht auch deine IP-Adresse.\n\n"
          + "Du kannst diese Auswahl jederzeit über die Schaltfläche Datenschutz\n"
          + "im Launcher ändern.",
       "alpha.accept", "Akzeptieren und senden",

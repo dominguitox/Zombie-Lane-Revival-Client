@@ -156,8 +156,9 @@ powershell -ExecutionPolicy Bypass -File tools\build-client.ps1 `
 
 ## Known issues
 
-- The loading-screen NPE in `DCiDead.drawLoadingScreen` remains under
-  investigation and is not fixed in this release.
+- The inherited loading-screen NPE note from the 0.1.1 documentation has not
+  been reproduced by the maintainer and is not considered a confirmed issue in
+  this release.
 - The launcher GUI has no automated visual test.
 - Localized server-provided text is not included.
 - The three optional settings bytes after the language byte (crops, neighbors

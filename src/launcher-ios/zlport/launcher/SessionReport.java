@@ -9,6 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -28,20 +32,41 @@ import java.util.zip.ZipOutputStream;
 /**
  * Informe técnico de una sesión de la alpha. El zip incluye el log, las
  * acciones de juego, la configuración y un resumen legible. Se guarda primero
- * en {@code logs/informes/pendientes}; si hay consentimiento y servidor se sube
- * a {@code POST /reports}. Si la subida falla, el zip se queda pendiente y se
- * reintenta en el siguiente arranque.
+ * en {@code logs/informes/pendientes}; con consentimiento se sube a un
+ * receptor HTTPS independiente del servidor de juego. Si la subida falla,
+ * el zip queda pendiente y se reintenta al arrancar.
  */
 final class SessionReport {
-   static final String VERSION = "1.4.4";
+   static final String CLIENT_VERSION_PROPERTY = "zlport.client.version";
+    static final String RELEASE_VERSION = "0.1.3";
+    /** Build identity from the package; defaults to the current release for direct source launches. */
+   static final String VERSION = configuredClientVersion();
    static final String MARKER_FILE = "sesion-en-curso.properties";
    static final String PENDING_DIR = "logs/informes/pendientes";
    static final String SENT_DIR = "logs/informes/enviados";
+   static final String REPORT_URL_PROPERTY = "zlport.alpha.report-url";
+   static final String DEFAULT_REPORT_URL = "https://reports.jorgelio.cl/reports/index.php";
+   static final String TOKEN_FILE = "report-token.txt";
+   static final long MAX_UPLOAD_BYTES = 1024L * 1024L;
+   private static final int MAX_PENDING_UPLOADS_PER_START = 3;
+   private static final Duration LOCAL_RETENTION = Duration.ofDays(30);
+   // LOCAL mode replaces URL.openConnection with OfflineNetwork. Keep uploads
+   // on this dedicated client; reportEndpoint() restricts destinations to HTTPS
+   // or explicit loopback HTTP, so game networking remains offline.
+   private static final HttpClient REPORT_CLIENT = HttpClient.newBuilder()
+      .connectTimeout(Duration.ofSeconds(10))
+      .followRedirects(HttpClient.Redirect.NEVER)
+      .build();
    private static final DateTimeFormatter ID = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
    private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
    private static final java.lang.System.Logger LOG = System.getLogger("zlport.launcher");
 
    private SessionReport() {
+   }
+
+   private static String configuredClientVersion() {
+      String configured = System.getProperty(CLIENT_VERSION_PROPERTY, RELEASE_VERSION).strip();
+      return configured.matches("[0-9A-Za-z][0-9A-Za-z._-]{0,63}") ? configured : RELEASE_VERSION;
    }
 
    static final class Session {
@@ -54,10 +79,10 @@ final class SessionReport {
       final String user;
       final String serverUrl;
       final Instant startedAt;
-      final ServerConnection server;
+      final URI reportEndpoint;
 
       private Session(Path dataRoot, Path runtimeDir, Path staging, String id, String mode, String accountId,
-            String user, String serverUrl, Instant startedAt, ServerConnection server) {
+            String user, String serverUrl, Instant startedAt, URI reportEndpoint) {
          this.dataRoot = dataRoot;
          this.runtimeDir = runtimeDir;
          this.staging = staging;
@@ -67,16 +92,16 @@ final class SessionReport {
          this.user = user;
          this.serverUrl = serverUrl;
          this.startedAt = startedAt;
-         this.server = server;
+         this.reportEndpoint = reportEndpoint;
       }
    }
 
    /** Marca el inicio de la sesión para poder recuperarla si el proceso muere. */
    static Session begin(Path dataRoot, Path runtimeDir, String mode, String accountId, String user,
-         ServerConnection server) {
+         ServerConnection server, URI reportEndpoint) {
       Instant now = Instant.now();
       String id = ID.format(LocalDateTime.ofInstant(now, ZoneId.systemDefault()))
-         + "-" + UUID.randomUUID().toString().substring(0, 6);
+         + "-" + UUID.randomUUID();
       Path staging = null;
       try {
          staging = Files.createDirectories(dataRoot.resolve("logs").resolve("sesiones").resolve(id));
@@ -96,7 +121,7 @@ final class SessionReport {
          LOG.log(java.lang.System.Logger.Level.WARNING, "No se pudo marcar el inicio del informe de sesión", exception);
       }
       return new Session(dataRoot, runtimeDir, staging, id, mode, accountId, user,
-         server == null ? "" : server.host() + ":" + server.port(), now, server);
+          server == null ? "" : server.host() + ":" + server.port(), now, reportEndpoint);
    }
 
    /** Copia las acciones antes de que SERVER mode borre su directorio temporal. */
@@ -115,7 +140,7 @@ final class SessionReport {
          return;
       }
       Path marker = session.dataRoot.resolve("logs").resolve(MARKER_FILE);
-      if (!consent) {
+       if (!consent || !AlphaConsent.enabled(session.dataRoot)) {
          deleteTree(session.staging);
          deleteFile(marker);
          return;
@@ -131,7 +156,7 @@ final class SessionReport {
          deleteTree(session.staging);
          deleteFile(marker);
          LOG.log(java.lang.System.Logger.Level.INFO, "Informe de sesión guardado en " + zip.toAbsolutePath());
-         upload(session, zip);
+          upload(session.dataRoot, zip, session.reportEndpoint, session.accountId);
       } catch (IOException | RuntimeException exception) {
          LOG.log(java.lang.System.Logger.Level.WARNING, "No se pudo crear el informe de sesión", exception);
       }
@@ -163,7 +188,6 @@ final class SessionReport {
       Instant startedAt = Instant.ofEpochMilli(parseLong(properties.getProperty("inicio"), System.currentTimeMillis()));
       Path runtimeDir = Path.of(properties.getProperty("runtime", dataRoot.toString()));
       String serverText = properties.getProperty("servidor", "");
-      ServerConnection server = parseServer(serverText);
       Path staging = null;
       try {
          staging = Files.createDirectories(dataRoot.resolve("logs").resolve("sesiones").resolve(id + "-recuperada"));
@@ -172,7 +196,7 @@ final class SessionReport {
             properties.getProperty("modo", "local"),
             properties.getProperty("cuenta", ""),
             properties.getProperty("usuario", ""),
-            serverText, startedAt, server
+             serverText, startedAt, null
          );
          copy(runtimeDir.resolve("actions.jsonl"), staging.resolve("acciones.jsonl"));
          copy(runtimeDir.resolve("zombie-lane.properties"), staging.resolve("configuracion.txt"));
@@ -190,17 +214,18 @@ final class SessionReport {
          if (normalizedRuntime.startsWith(sessionsRoot)) {
             deleteTree(normalizedRuntime);
          }
-         LOG.log(java.lang.System.Logger.Level.WARNING,
-            "La sesión anterior no cerró correctamente; informe guardado en " + zip.toAbsolutePath());
-         upload(session, zip);
+          LOG.log(java.lang.System.Logger.Level.WARNING,
+             "La sesión anterior no cerró correctamente; informe guardado en " + zip.toAbsolutePath());
       } catch (IOException | RuntimeException exception) {
          LOG.log(java.lang.System.Logger.Level.WARNING, "No se pudo recuperar el informe de la sesión anterior", exception);
       }
    }
 
    /** Reintenta los informes pendientes; se llama al arrancar con un servidor disponible. */
-   static void uploadPending(Path dataRoot, ServerConnection server, String accountId) {
-      if (server == null) {
+   static void uploadPending(Path dataRoot, URI reportEndpoint) {
+      purgeOld(dataRoot.resolve(PENDING_DIR));
+      purgeOld(dataRoot.resolve(SENT_DIR));
+      if (reportEndpoint == null) {
          return;
       }
       Path pending = dataRoot.resolve(PENDING_DIR);
@@ -211,35 +236,146 @@ final class SessionReport {
          List<Path> zips = files.filter(path -> path.getFileName().toString().endsWith(".zip"))
             .sorted()
             .toList();
-         for (Path zip : zips) {
-            uploadFile(dataRoot, zip, server, accountId);
+          int attempted = 0;
+          for (Path zip : zips) {
+             if (attempted >= MAX_PENDING_UPLOADS_PER_START) {
+                break;
+             }
+             if (Files.size(zip) > MAX_UPLOAD_BYTES) {
+                LOG.log(java.lang.System.Logger.Level.WARNING,
+                   "Informe mayor que el límite de 1 MiB; queda pendiente sin enviar: " + zip.getFileName());
+                continue;
+             }
+             attempted++;
+             uploadFile(dataRoot, zip, reportEndpoint, "");
          }
       } catch (IOException exception) {
          LOG.log(java.lang.System.Logger.Level.WARNING, "No se pudieron revisar los informes pendientes", exception);
       }
    }
 
-   private static void upload(Session session, Path zip) {
-      if (session.server == null) {
-         LOG.log(java.lang.System.Logger.Level.INFO,
-            "Modo local: el informe no se envía; quedó en " + zip.toAbsolutePath());
+   private static void purgeOld(Path directory) {
+      if (!Files.isDirectory(directory)) {
          return;
       }
-      uploadFile(session.dataRoot, zip, session.server, session.accountId);
+      try (var files = Files.list(directory)) {
+         Instant cutoff = Instant.now().minus(LOCAL_RETENTION);
+         for (Path file : files.filter(path -> path.getFileName().toString().endsWith(".zip")).toList()) {
+            if (Files.isRegularFile(file) && Files.getLastModifiedTime(file).toInstant().isBefore(cutoff)) {
+               Files.delete(file);
+            }
+         }
+      } catch (IOException exception) {
+         LOG.log(java.lang.System.Logger.Level.WARNING, "No se pudieron purgar informes locales antiguos", exception);
+      }
    }
 
-   private static void uploadFile(Path dataRoot, Path zip, ServerConnection server, String accountId) {
+   static URI reportEndpoint() {
+      String configured = System.getProperty(REPORT_URL_PROPERTY, DEFAULT_REPORT_URL).strip();
+      if (configured.isEmpty()) {
+         return null;
+      }
+      try {
+         URI endpoint = URI.create(configured);
+         String scheme = endpoint.getScheme();
+         boolean https = "https".equalsIgnoreCase(scheme);
+         boolean localHttp = "http".equalsIgnoreCase(scheme) && endpoint.getHost() != null
+            && (endpoint.getHost().equalsIgnoreCase("localhost") || endpoint.getHost().equals("127.0.0.1")
+               || endpoint.getHost().equals("::1"));
+         if ((!https && !localHttp) || endpoint.getHost() == null || endpoint.getUserInfo() != null
+               || endpoint.getFragment() != null || endpoint.getQuery() != null) {
+            throw new IllegalArgumentException("report URL must use HTTPS (HTTP is allowed only for loopback tests)");
+         }
+         return endpoint;
+      } catch (IllegalArgumentException exception) {
+         LOG.log(java.lang.System.Logger.Level.WARNING,
+            "URL de informes no válida; el ZIP se conservará localmente (" + exception.getMessage() + ")");
+         return null;
+      }
+   }
+
+   private static void upload(Path dataRoot, Path zip, URI reportEndpoint, String accountId) {
+      if (reportEndpoint == null) {
+         LOG.log(java.lang.System.Logger.Level.INFO,
+            "No hay destino HTTPS de informes; el ZIP quedó local en " + zip.toAbsolutePath());
+         return;
+      }
+      uploadFile(dataRoot, zip, reportEndpoint, accountId);
+   }
+
+   private static void uploadFile(Path dataRoot, Path zip, URI reportEndpoint, String accountId) {
       Path sent = dataRoot.resolve(SENT_DIR);
       try {
-         server.uploadReport(zip, accountId, zip.getFileName().toString().replace(".zip", ""));
-         Files.createDirectories(sent);
-         Files.move(zip, sent.resolve(zip.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-         LOG.log(java.lang.System.Logger.Level.INFO, "Informe enviado al servidor: " + zip.getFileName());
-      } catch (IOException | RuntimeException exception) {
-         LOG.log(java.lang.System.Logger.Level.WARNING,
-            "No se pudo enviar el informe; queda pendiente en " + zip.toAbsolutePath()
-               + " (" + exception.getMessage() + ")");
+          String token = reportToken(dataRoot);
+          if (token == null && !loopback(reportEndpoint)) {
+             LOG.log(java.lang.System.Logger.Level.WARNING,
+                "No hay clave de tester válida; informe pendiente sin enviar: " + zip.getFileName());
+             return;
+          }
+          long size = Files.size(zip);
+          if (size > MAX_UPLOAD_BYTES) {
+             LOG.log(java.lang.System.Logger.Level.WARNING,
+                "Informe mayor que el límite de 1 MiB; queda pendiente sin enviar: " + zip.getFileName());
+             return;
+          }
+          HttpRequest.Builder request = HttpRequest.newBuilder(reportEndpoint)
+             .timeout(Duration.ofSeconds(15))
+             .header("Content-Type", "application/zip")
+             .header("X-ZL-Consent", "alpha")
+             .POST(HttpRequest.BodyPublishers.ofFile(zip));
+          if (token != null) {
+             request.header("X-ZL-Report-Token", token);
+          }
+          request.header("X-ZL-Account", header(accountId));
+          request.header("X-ZL-Report-Id", header(zip.getFileName().toString().replace(".zip", "")));
+          request.header("X-ZL-Game-Version", VERSION);
+          HttpResponse<Void> response = REPORT_CLIENT.send(request.build(), HttpResponse.BodyHandlers.discarding());
+          int status = response.statusCode();
+          if (status != 200) {
+             throw new IOException("HTTP " + status);
+          }
+          Files.createDirectories(sent);
+          Files.move(zip, sent.resolve(zip.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+          LOG.log(java.lang.System.Logger.Level.INFO, "Informe recibido por el endpoint de diagnóstico: " + zip.getFileName());
+       } catch (IOException | RuntimeException | InterruptedException exception) {
+          if (exception instanceof InterruptedException) {
+             Thread.currentThread().interrupt();
+          }
+          LOG.log(java.lang.System.Logger.Level.WARNING,
+             "No se pudo enviar el informe; queda pendiente en " + zip.toAbsolutePath()
+                 + " (" + exception.getMessage() + ")");
+       }
+   }
+
+   private static boolean loopback(URI endpoint) {
+      String host = endpoint.getHost();
+      return host != null && (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1")
+         || host.equals("::1"));
+   }
+
+   private static String reportToken(Path dataRoot) {
+      Path file = dataRoot.resolve(TOKEN_FILE);
+      try {
+         if (!Files.isRegularFile(file) || Files.size(file) > 256) {
+            return null;
+         }
+         String value = Files.readString(file, StandardCharsets.US_ASCII).strip();
+         return value.matches("[A-Za-z0-9_-]{32,128}") ? value : null;
+      } catch (IOException exception) {
+         return null;
       }
+   }
+
+   private static String header(String value) {
+      if (value == null) {
+         return "";
+      }
+      StringBuilder out = new StringBuilder(value.length());
+      for (int index = 0; index < value.length(); index++) {
+         char character = value.charAt(index);
+         out.append(character >= 0x20 && character <= 0x7E ? character : '?');
+      }
+      return out.toString();
    }
 
    private static void writeManifest(Session session, Path crashReport, Launcher.Result result, int exitCode,
@@ -400,17 +536,6 @@ final class SessionReport {
          return Long.parseLong(value);
       } catch (NumberFormatException exception) {
          return fallback;
-      }
-   }
-
-   private static ServerConnection parseServer(String text) {
-      if (text == null || text.isBlank()) {
-         return null;
-      }
-      try {
-         return ServerConnection.parseEndpoint(text);
-      } catch (IllegalArgumentException exception) {
-         return null;
       }
    }
 

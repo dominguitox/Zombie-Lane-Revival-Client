@@ -33,20 +33,20 @@ From the repository root:
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\build-client.ps1 `
     -AssetsRoot "C:\path\to\Zombie-Lane-Assets" `
-    -Version 0.1.2 `
+    -Version 0.1.3 `
     -Release
 ```
 
 The default output is a sibling of this repository:
 
-- Release folder: `..\Zombie-Lane-Alpha-0.1.2`
-- Release zip: `..\Zombie-Lane-Alpha-0.1.2.zip`
+- Release folder: `..\Zombie-Lane-Alpha-0.1.3`
+- Release zip: `..\Zombie-Lane-Alpha-0.1.3.zip`
 
 Options:
 
 - `-AssetsRoot`: external assets root. The default is `C:\Proyectos\Zombie-Lane-Assets`.
 - `-OutputRoot`: override the release folder. The default is `..\Zombie-Lane-Alpha-<version>`.
-- `-Version`: release version. The default is `0.1.2`.
+- `-Version`: release version. The default is `0.1.3`.
 - `-JavacPath`: explicit JDK compiler path.
 - `-Release`: require clean, committed sources. Use this for a public release.
 - `-SkipZip`: assemble the folder but do not create the zip.
@@ -80,9 +80,13 @@ The `0.1.2` package does not include `mission-backups` or three stale root files
 
 ### Version 0.1.2
 
-`0.1.2` includes the launcher validation fixes over `0.1.1`, local offline energy and cash cheats, a smaller launcher options screen, in-game music and sound-effect volume sliders, quieter startup diagnostics, a hidden console by default with an opt-in CMD setting, and a safe-defaults button. Rebuild the package from the current source tree to include the later changes. The loading-screen crash remains under investigation.
+`0.1.2` includes the launcher validation fixes over `0.1.1`, local offline energy and cash cheats, a smaller launcher options screen, in-game music and sound-effect volume sliders, quieter startup diagnostics, a hidden console by default with an opt-in CMD setting, and a safe-defaults button. The loading-screen crash mentioned in inherited notes has not been reproduced by the maintainer and is not treated as a confirmed issue in this release.
 
-The `0.1.1` release introduced the local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included. The loading-screen crash is still under investigation.
+### Version 0.1.3
+
+With renewed opt-in and a per-tester token, the client sends one compressed session report to `https://reports.jorgelio.cl/reports/index.php`, including from LOCAL/offline gameplay. Uploads require internet, but neither gameplay nor report uploads require the game server. Uploads are capped at 1 MiB and pending reports are retried in bounded batches. The manual **Probar conexiones** button checks only the receiver with GET in LOCAL mode; in SERVER mode it checks the game server, public status page/data, and receiver. The official package and reports identify as `0.1.3`; `0.1.3c` was a test build, and `0.1.4` is the next official version. See [0.1.3 notes](docs/release-0.1.3.md) and the [receiver contract](docs/report-receiver.md). Deployment of the updated receiver and provisioning of each tester key are required before their uploads can succeed.
+
+The `0.1.1` release introduced the local first-run language selector for English, French, Italian, German and Spanish. The choice is stored in `launcher.properties`, applied to the selected profile and synchronized back after the game exits; it never touches the server. Field validation and the always-enabled Play button are included.
 
 See `docs/language.md`, `docs/release-0.1.2.md` and `docs/release-0.1.1.md` for the implementation and release details.
 

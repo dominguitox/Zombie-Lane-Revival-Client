@@ -2,7 +2,7 @@
 param(
     [string]$AssetsRoot = 'C:\Proyectos\Zombie-Lane-Assets',
     [string]$OutputRoot = '',
-    [string]$Version = '0.1.2',
+    [string]$Version = '0.1.3',
     [string]$JavacPath = '',
     [switch]$Release,
     [switch]$SkipZip,
@@ -34,6 +34,7 @@ $script:JunkFileNames = @(
     'mailbox.properties',
     'launcher.properties',
     'alpha.properties',
+    'report-token.txt',
     'sesion-en-curso.properties',
     'session-in-progress.properties',
     'Thumbs.db',
@@ -706,6 +707,9 @@ $repositoryRoot = Get-NormalizedPath (Join-Path $PSScriptRoot '..')
 if ($Version -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]*$' -or $Version.Length -gt 64) {
     throw 'Version must start with a letter or digit and may contain only letters, digits, dots, underscores, and hyphens.'
 }
+if (-not $Release -and $Version -match '^\d+\.\d+\.\d+$') {
+    throw 'Unofficial development builds must include a suffix (for example 0.1.3c); reserve unsuffixed versions for published releases.'
+}
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $outputRoot = Get-NormalizedPath (Join-Path (Split-Path -Parent $repositoryRoot) ('Zombie-Lane-Alpha-' + $Version))
 } else {
@@ -784,18 +788,28 @@ $batchContents = @(
     '@echo off',
     'setlocal',
     'cd /d "%~dp0"',
+    'if not exist "runtime\bin\java.exe" goto incomplete_package',
+    'if not exist "runtime\bin\javaw.exe" goto incomplete_package',
+    'if not exist "lib\*.jar" goto incomplete_package',
+    'if not exist "game-assets-ios\" goto incomplete_package',
+    'if not exist "client-overrides\zlport\launcher\IosMain.class" goto incomplete_package',
     'set "ZL_DATA=%APPDATA%\ZombieLane-1.4.4"',
     'if not defined APPDATA set "ZL_DATA=%USERPROFILE%\.zombielane-1.4.4"',
     'set "ZL_SHOW_CONSOLE=false"',
     'if exist "%ZL_DATA%\launcher.properties" findstr /i /x /c:"console.visible=true" "%ZL_DATA%\launcher.properties" >nul && set "ZL_SHOW_CONSOLE=true"',
     'if /i "%ZL_SHOW_CONSOLE%"=="true" goto show_console',
-    'start "" /b "runtime\bin\javaw.exe" "-Dzlport.server.url=http://127.0.0.1:6767/dead/" "-Dzlport.ios.bundle=%~dp0game-assets-ios" -cp "client-overrides;lib\*" zlport.launcher.IosMain',
+    ('start "" /b "runtime\bin\javaw.exe" "-Dzlport.client.version=' + $Version + '" "-Dzlport.server.url=http://127.0.0.1:6767/dead/" "-Dzlport.ios.bundle=%~dp0game-assets-ios" -cp "client-overrides;lib\*" zlport.launcher.IosMain'),
     'exit /b 0',
     ':show_console',
-    '"runtime\bin\java.exe" "-Dzlport.server.url=http://127.0.0.1:6767/dead/" "-Dzlport.ios.bundle=%~dp0game-assets-ios" -cp "client-overrides;lib\*" zlport.launcher.IosMain',
+    ('"runtime\bin\java.exe" "-Dzlport.client.version=' + $Version + '" "-Dzlport.server.url=http://127.0.0.1:6767/dead/" "-Dzlport.ios.bundle=%~dp0game-assets-ios" -cp "client-overrides;lib\*" zlport.launcher.IosMain'),
     'set "ZL_EXIT=%ERRORLEVEL%"',
     'if not "%ZL_EXIT%"=="0" pause',
-    'exit /b %ZL_EXIT%'
+    'exit /b %ZL_EXIT%',
+    ':incomplete_package',
+    'echo Incomplete game package. Extract the entire ZIP before starting the game.',
+    'echo Paquete incompleto. Extrae todo el ZIP antes de iniciar el juego.',
+    'pause',
+    'exit /b 1'
 ) -join "`r`n"
 [System.IO.File]::WriteAllText(
     (Join-Path $outputRoot 'Run Zombie Lane Alpha.bat'),
@@ -853,6 +867,19 @@ Changes in this build:
   showing the console on the next start; logs remain available in the log file.
 - Expected startup probes are summarized instead of flooding the console;
   actual failures retain their stack traces.
+- With explicit consent, one ZIP per session is sent to
+  https://reports.jorgelio.cl/reports/index.php separately from the game
+  server. Reports are limited to 1 MiB; failed uploads stay local for bounded
+  retries.
+- Existing alpha consent must be confirmed again for the new destination.
+- Public report uploads require a unique per-tester key in the local
+  report-token.txt file; no key is included in the public package.
+- The receiver must accept this build's version and have a tester token
+  provisioned before live uploads work.
+- The manual connection check uses one report-receiver GET in LOCAL mode. In
+  SERVER mode it checks the selected game server, public page and snapshot, and
+  report receiver. Probes use GET only; no username, password or report is
+  sent.
 - The build compiles the explicit public client class list with the release
   stubs instead of scanning every source file in the tree.
 - Release assembly rejects server code and data, sources, tools, tests, docs,

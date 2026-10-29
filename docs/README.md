@@ -5,8 +5,11 @@ the release version it applies to.
 
 - [Language support](language.md) - the `0.1.1+` launcher/game language flow,
   storage format and extension points.
-- [Release 0.1.2](release-0.1.2.md) - launcher validation fixes for the current
-  alpha release.
+- [Release 0.1.2](release-0.1.2.md) - previous launcher and gameplay fixes.
+- [Alpha 0.1.3](release-0.1.3.md) - opt-in diagnostic reports for LOCAL gameplay.
+- [Seguimiento de prueba 0.1.3c](testing-0.1.3c.md) - estado, resultados y
+  pasos para continuar el test del receptor.
+- [PHP/MySQL receiver plan](report-receiver.md) - deployment contract and gate.
 - [Release 0.1.1](release-0.1.1.md) - the initial language release and its
   known issues.
 

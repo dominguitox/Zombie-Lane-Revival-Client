@@ -7,8 +7,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -22,12 +20,13 @@ import java.util.regex.Pattern;
  * (no Swing) so it can be tested without a window.
  *
  * <p>The composed game URL is always {@code http://HOST:PORT/dead/} (the shape
- * {@code SettingsWrapper} already expects) and the connection check uses a
- * single {@code GET /health} request with short timeouts.</p>
+ * {@code SettingsWrapper} already expects). Its game-server health check is a
+ * single {@code GET /health} request with short timeouts; the launcher's
+ * separate manual multi-service check is implemented by {@link ConnectivityChecks}.</p>
  *
- * <p>The connection is plain unencrypted HTTP: suitable only for a trusted
- * network (LAN or the same machine). Only the host the player typed is ever
- * contacted; no external or historical hosts are involved.</p>
+ * <p>The game connection is plain unencrypted HTTP: suitable only for a trusted
+ * network (LAN or the same machine). This class's health check contacts only
+ * the host the player typed and does not follow redirects.</p>
  */
 public record ServerConnection(String host, int port) {
    /** Valid TCP port range (1..65535). */
@@ -40,10 +39,8 @@ public record ServerConnection(String host, int port) {
    static final Duration PROBE_TIMEOUT = Duration.ofSeconds(3);
    static final String GAME_BASE = "/dead/";
    static final String HEALTH_PATH = "/health";
-   static final String REPORT_PATH = "/reports";
    static final Duration AUTH_TIMEOUT = Duration.ofSeconds(10);
    static final Duration SAVE_TIMEOUT = Duration.ofSeconds(30);
-   static final Duration REPORT_TIMEOUT = Duration.ofSeconds(30);
    static final String[] SAVE_FIELDS = {"avatar", "gamefield", "missions", "area"};
 
    /**
@@ -306,50 +303,6 @@ public record ServerConnection(String host, int port) {
       postSave("/dead/UpdateAccountInformation", form.toString());
    }
 
-   /** Sube el zip del informe de sesión; el servidor lo guarda y aplica retención. */
-   public void uploadReport(Path file, String accountId, String reportId) throws IOException {
-      HttpURLConnection connection = null;
-      try {
-         connection = (HttpURLConnection)URI.create("http://" + this.host + ":" + this.port + REPORT_PATH)
-            .toURL().openConnection();
-         connection.setConnectTimeout((int)REPORT_TIMEOUT.toMillis());
-         connection.setReadTimeout((int)REPORT_TIMEOUT.toMillis());
-         connection.setRequestMethod("POST");
-         connection.setDoOutput(true);
-         connection.setRequestProperty("Content-Type", "application/zip");
-         connection.setRequestProperty("X-ZL-Consent", "alpha");
-         connection.setRequestProperty("X-ZL-Account", header(accountId));
-         connection.setRequestProperty("X-ZL-Report-Id", header(reportId));
-         connection.setRequestProperty("X-ZL-Game-Version", SessionReport.VERSION);
-         long size = Files.size(file);
-         connection.setFixedLengthStreamingMode(size);
-         try (var output = connection.getOutputStream()) {
-            Files.copy(file, output);
-         }
-         int status = connection.getResponseCode();
-         String body = readBody(connection);
-         if (status != HttpURLConnection.HTTP_OK) {
-            throw new IOException("HTTP " + status + (body.isBlank() ? "" : ": " + body));
-         }
-      } finally {
-         if (connection != null) {
-            connection.disconnect();
-         }
-      }
-   }
-
-   private static String header(String value) {
-      if (value == null) {
-         return "";
-      }
-      StringBuilder out = new StringBuilder(value.length());
-      for (int index = 0; index < value.length(); index++) {
-         char character = value.charAt(index);
-         out.append(character >= 0x20 && character <= 0x7E ? character : '?');
-      }
-      return out.toString();
-   }
-
    private String postSave(String path, String form) throws IOException {
       HttpURLConnection connection = null;
       try {
@@ -391,10 +344,11 @@ public record ServerConnection(String host, int port) {
       HttpURLConnection connection = null;
       try {
          URI uri = URI.create(this.healthUrl());
-         connection = (HttpURLConnection)uri.toURL().openConnection();
-         connection.setConnectTimeout((int)PROBE_TIMEOUT.toMillis());
-         connection.setReadTimeout((int)PROBE_TIMEOUT.toMillis());
-         connection.setRequestMethod("GET");
+          connection = (HttpURLConnection)uri.toURL().openConnection();
+          connection.setConnectTimeout((int)PROBE_TIMEOUT.toMillis());
+          connection.setReadTimeout((int)PROBE_TIMEOUT.toMillis());
+          connection.setInstanceFollowRedirects(false);
+          connection.setRequestMethod("GET");
          connection.setRequestProperty("Connection", "close");
          int responseCode = connection.getResponseCode();
          String body = readBody(connection);

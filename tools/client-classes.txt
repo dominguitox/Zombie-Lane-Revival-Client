@@ -34,6 +34,7 @@ src\game-ios\com\dchoc\idead\missions\CustomMissionsBootstrap.java
 src\game-ios\com\dchoc\idead\tracking\Event.java
 src\game-ios\com\dchoc\idead\GameEngine.java
 src\launcher-ios\zlport\launcher\ServerConnection.java
+src\launcher-ios\zlport\launcher\ConnectivityChecks.java
 src\launcher-ios\zlport\launcher\ServerSaveSync.java
 src\launcher-ios\zlport\launcher\AlphaConsent.java
 src\launcher-ios\zlport\launcher\SessionReport.java

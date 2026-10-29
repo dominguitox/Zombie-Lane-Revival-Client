@@ -4,6 +4,7 @@ import com.dchoc.toolkit.Toolkit;
 import java.io.IOException;
 import java.lang.System.Logger;
 import java.net.URISyntaxException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -230,19 +231,19 @@ public final class IosMain {
          Config config = parse(settings, runtimeDir, configArgs).orElseThrow();
 
          // Informe de la alpha: consentimiento una vez, recuperación de la
-         // sesión anterior si murió y marca de la sesión actual.
-         boolean reportConsent = AlphaConsent.askIfNeeded(dataRoot, !flags.noLauncher());
-         SessionReport.recover(dataRoot, reportConsent);
-         if (reportConsent) {
-            SessionReport.uploadPending(dataRoot, saveServer, accountId);
-         }
+          // sesión anterior si murió y marca de la sesión actual.
+          boolean reportConsent = AlphaConsent.askIfNeeded(dataRoot, !flags.noLauncher());
+          URI reportEndpoint = reportConsent ? SessionReport.reportEndpoint() : null;
+          SessionReport.recover(dataRoot, reportConsent);
+          SessionReport.uploadPending(dataRoot, reportEndpoint);
          SessionReport.Session reportSession = SessionReport.begin(
             dataRoot,
             runtimeDir,
             serverMode ? "servidor" : "local",
             accountId,
             identityUser,
-            saveServer
+             saveServer,
+             reportEndpoint
          );
          printStartupSummary(dataRoot, runtimeDir, serverMode, saveServer, accountId, identityUser, reportConsent);
 
@@ -539,7 +540,7 @@ public final class IosMain {
    private static Optional<Config> parse(Settings settings, Path dataDir, String... args) {
       for (int i = 0; i < args.length; i++) {
          if (args[i].equals("--size") || args[i].startsWith("--size=")) {
-            throw new IllegalArgumentException("--size no se acepta en 1.4.4: la pantalla lógica es fija de 1136x640; redimensiona la ventana desde el sistema.");
+            throw new IllegalArgumentException("--size no se acepta: la pantalla lógica del port iOS es fija de 1136x640; redimensiona la ventana desde el sistema.");
          }
 
          if (args[i].equals("--data-dir") || args[i].equals("--midlet")) {
@@ -549,7 +550,7 @@ public final class IosMain {
 
       Optional<Config> config = Config.parse(settings, dataDir, args);
       if (config.isPresent() && !"com.dchoc.DCiDead".equals(config.orElseThrow().midlet())) {
-         throw new IllegalArgumentException("El lanzador de 1.4.4 solo usa el MIDlet com.dchoc.DCiDead.");
+         throw new IllegalArgumentException("El port iOS solo usa el MIDlet com.dchoc.DCiDead.");
       } else {
          return config;
       }
@@ -656,7 +657,7 @@ public final class IosMain {
          Path location = Path.of(IosMain.class.getProtectionDomain().getCodeSource().getLocation().toURI());
          return installedBundle(location);
       } catch (URISyntaxException exception) {
-         throw new IllegalStateException("No se pudo localizar la instalación de la 1.4.4", exception);
+          throw new IllegalStateException("No se pudo localizar la instalación del port iOS", exception);
       }
    }
 
@@ -738,7 +739,8 @@ public final class IosMain {
 
       if (config.visible()) {
          WindowsDialogs.showError(
-            "Zombie Lane 1.4.4", "Zombie Lane 1.4.4 encontró un error y va a cerrarse."
+            "Zombie Lane " + SessionReport.VERSION,
+            "Zombie Lane " + SessionReport.VERSION + " encontró un error y va a cerrarse."
                + (report == null ? "" : "\n\nDetalles en:\n" + report.toAbsolutePath())
          );
       }

@@ -59,7 +59,7 @@ final class IosClasspath {
       }
 
       if (copies != 1) {
-         problems.add("Se esperaba una única DCiDead de la 1.4.4; encontradas " + copies + " copias");
+         problems.add("Se esperaba una única DCiDead del bundle del port iOS; encontradas " + copies + " copias");
       }
 
       return List.copyOf(problems);

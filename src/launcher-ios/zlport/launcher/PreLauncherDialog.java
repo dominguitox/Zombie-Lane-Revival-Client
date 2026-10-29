@@ -26,6 +26,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -99,7 +101,7 @@ public final class PreLauncherDialog {
    private final PreLauncherState seed;
    private final boolean pickProfile;
    private final JDialog dialog =
-      new JDialog((java.awt.Frame)null, "Zombie Lane 1.4.4", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+      new JDialog((java.awt.Frame)null, "Zombie Lane " + SessionReport.VERSION, java.awt.Dialog.ModalityType.APPLICATION_MODAL);
    private Optional<Selection> result = Optional.empty();
 
    private JComboBox<LocalProfiles.ProfileInfo> profileBox;
@@ -117,6 +119,7 @@ public final class PreLauncherDialog {
    private JTextField portField;
    private JTextField userField;
    private JPasswordField passwordField;
+   private JButton probeButton;
    private JCheckBox registerAccount;
    private JCheckBox rememberUser;
    private JLabel probeResult;
@@ -327,9 +330,9 @@ public final class PreLauncherDialog {
       panel.add(this.rememberUser, c);
 
       c = this.nextRow(c);
-      JButton probeButton = new JButton(LauncherText.get("button.probe"));
-      probeButton.addActionListener(action -> this.probeConnection());
-      panel.add(probeButton, c);
+       this.probeButton = new JButton(LauncherText.get("button.probe"));
+       this.probeButton.addActionListener(action -> this.probeConnection());
+       panel.add(this.probeButton, c);
       c = nextCell(c);
       c.weightx = 1.0;
       c.fill = GridBagConstraints.HORIZONTAL;
@@ -569,7 +572,7 @@ public final class PreLauncherDialog {
        this.userField.setEnabled(enabled);
        this.passwordField.setEnabled(enabled);
        this.rememberUser.setEnabled(enabled);
-       // The cheats are offline-only: disabled while the server mode is picked.
+        // The cheats are offline-only: disabled while the server mode is picked.
        this.setCheatBoxesEnabled(!enabled);
     }
 
@@ -897,39 +900,60 @@ public final class PreLauncherDialog {
       return LauncherText.format("error.serverGate", server.host(), server.port(), probe.detail());
    }
 
-   private void probeConnection() {
-      String hostError = ServerConnection.validateHost(this.hostField.getText());
-      if (hostError != null) {
-         this.probeResult.setText(hostError);
-         return;
-      }
-      String portError = portError(this.portField.getText());
-      if (portError != null) {
-         this.probeResult.setText(portError);
-         return;
-      }
+    private void probeConnection() {
+       boolean reportsOnly = this.localMode.isSelected();
+       ServerConnection server = null;
+       if (!reportsOnly) {
+          String hostError = ServerConnection.validateHost(this.hostField.getText());
+          if (hostError != null) {
+             this.probeResult.setText(hostError);
+             return;
+          }
+          String portError = portError(this.portField.getText());
+          if (portError != null) {
+             this.probeResult.setText(portError);
+             return;
+          }
+          try {
+             server = ServerConnection.of(this.hostField.getText(), this.portField.getText());
+          } catch (IllegalArgumentException exception) {
+             this.probeResult.setText(exception.getMessage());
+             return;
+          }
+       }
 
-      ServerConnection server;
-      try {
-         server = ServerConnection.of(this.hostField.getText(), this.portField.getText());
-      } catch (IllegalArgumentException exception) {
-         this.probeResult.setText(exception.getMessage());
-         return;
-      }
-
-      this.probeResult.setText(LauncherText.format("probe.checking", server.healthUrl()));
-      Thread thread = new Thread(() -> {
-         ServerConnection.Probe probe = server.probe();
-         SwingUtilities.invokeLater(() -> {
-            if (probe.ok()) {
-               this.probeResult.setText(LauncherText.format("probe.ok", server.healthUrl()));
-            } else if (probe.detail().startsWith("HTTP ") || probe.detail().startsWith("port ")) {
-               this.probeResult.setText(probe.detail());
-            } else {
-               this.probeResult.setText(LauncherText.format("probe.noResponse", probe.detail()));
-            }
-         });
-      }, "zl-lanzador-comprueba");
+        this.probeButton.setEnabled(false);
+        this.probeResult.setText(LauncherText.get(reportsOnly ? "probe.checkingReports" : "probe.checkingAll"));
+        final boolean reportCheckOnly = reportsOnly;
+        final ServerConnection selectedServer = server;
+        Thread thread = new Thread(() -> {
+           List<ConnectivityChecks.Check> checks = reportCheckOnly
+              ? ConnectivityChecks.checkReportsOnly() : ConnectivityChecks.checkAll(selectedServer);
+           SwingUtilities.invokeLater(() -> {
+             if (!this.dialog.isDisplayable()) {
+                return;
+             }
+             int available = (int)checks.stream().filter(ConnectivityChecks.Check::available).count();
+              this.probeButton.setEnabled(true);
+             this.probeResult.setText(LauncherText.format("probe.summary", available, checks.size()));
+             StringBuilder report = new StringBuilder();
+             for (ConnectivityChecks.Check check : checks) {
+                String service = LauncherText.get("probe.service." + check.service());
+                String state = LauncherText.get(check.available() ? "probe.result.ok" : "probe.result.fail");
+                report.append(service).append(": ").append(state).append(" — ").append(check.detail()).append('\n')
+                   .append(check.endpoint()).append("\n\n");
+             }
+             report.append(LauncherText.get("probe.note"));
+             JTextArea text = new JTextArea(report.toString(), 12, 72);
+             text.setEditable(false);
+             text.setLineWrap(true);
+             text.setWrapStyleWord(true);
+             JOptionPane.showMessageDialog(
+                this.dialog, new JScrollPane(text), LauncherText.get("probe.resultsTitle"),
+                available == checks.size() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE
+             );
+          });
+       }, "zl-lanzador-comprueba-servicios");
       thread.setDaemon(true);
       thread.start();
    }

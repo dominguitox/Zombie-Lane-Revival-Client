@@ -17,7 +17,8 @@ import javax.swing.JTextArea;
  * Consentimiento del informe de diagnóstico de la alpha. Se pregunta una sola
  * vez y queda guardado en {@code alpha.properties}; el jugador puede cambiarlo
  * desde el botón "Privacidad" del lanzador. Si acepta, al terminar cada sesión
- * se envía un zip técnico al servidor; si no, no se envía nada.
+ * se envía un zip técnico al receptor HTTPS independiente del juego; si no,
+ * no se envía nada. Un cambio de destino exige renovar el consentimiento.
  */
 final class AlphaConsent {
    static final String FILE_NAME = "alpha.properties";
@@ -25,12 +26,15 @@ final class AlphaConsent {
    private static final String ASKED = "preguntado";
    private static final String GRANTED = "consentimiento";
    private static final String ASKED_AT = "preguntado_en";
+   private static final String POLICY = "politica";
+   private static final String CURRENT_POLICY = "reports.jorgelio.cl-30d-v1";
 
    private AlphaConsent() {
    }
 
    static boolean enabled(Path dataRoot) {
-      return load(dataRoot).granted;
+      State state = load(dataRoot);
+      return state.currentPolicy && state.granted;
    }
 
    /**
@@ -42,11 +46,10 @@ final class AlphaConsent {
       String override = System.getProperty(PROPERTY);
       if (override != null) {
          boolean granted = Boolean.parseBoolean(override);
-         save(dataRoot, granted);
-         return granted;
+         return save(dataRoot, granted) && granted;
       }
       State state = load(dataRoot);
-      if (state.asked) {
+       if (state.asked && state.currentPolicy) {
          return state.granted;
       }
       if (!graphical || GraphicsEnvironment.isHeadless()) {
@@ -85,47 +88,50 @@ final class AlphaConsent {
          options[0]
       );
       boolean granted = choice == 0;
-      save(dataRoot, granted);
-      return granted;
+       return save(dataRoot, granted) && granted;
    }
 
    private static State load(Path dataRoot) {
       Path file = dataRoot.resolve(FILE_NAME);
       if (!Files.isRegularFile(file)) {
-         return new State(false, false);
+          return new State(false, false, false);
       }
       Properties properties = new Properties();
       try (var reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
          properties.load(reader);
       } catch (IOException | IllegalArgumentException exception) {
-         return new State(false, false);
+          return new State(false, false, false);
       }
       return new State(
-         Boolean.parseBoolean(properties.getProperty(ASKED, "false")),
-         Boolean.parseBoolean(properties.getProperty(GRANTED, "false"))
+          Boolean.parseBoolean(properties.getProperty(ASKED, "false")),
+          Boolean.parseBoolean(properties.getProperty(GRANTED, "false")),
+          CURRENT_POLICY.equals(properties.getProperty(POLICY))
       );
    }
 
-   private static void save(Path dataRoot, boolean granted) {
+   private static boolean save(Path dataRoot, boolean granted) {
       Path file = dataRoot.resolve(FILE_NAME);
       String text = "# Informe de diagnóstico de la alpha de Zombie Lane.\n"
-         + "# consentimiento=true: se envía un informe técnico al servidor al terminar cada sesión.\n"
+          + "# consentimiento=true: se envía un informe técnico por sesión a reports.jorgelio.cl.\n"
          + "# consentimiento=false: no se envía nada; los registros se quedan solo en este equipo.\n"
          + ASKED + "=true\n"
-         + GRANTED + "=" + granted + "\n"
+          + GRANTED + "=" + granted + "\n"
+          + POLICY + "=" + CURRENT_POLICY + "\n"
          + ASKED_AT + "=" + Instant.now() + "\n";
       try {
          Files.createDirectories(dataRoot);
-         Files.writeString(file, text, StandardCharsets.UTF_8);
+          Files.writeString(file, text, StandardCharsets.UTF_8);
+          return true;
       } catch (IOException exception) {
          System.getLogger("zlport.launcher").log(
             System.Logger.Level.WARNING,
             "No se pudo guardar el consentimiento del informe en " + file,
             exception
-         );
+          );
+          return false;
       }
    }
 
-   private record State(boolean asked, boolean granted) {
+   private record State(boolean asked, boolean granted, boolean currentPolicy) {
    }
 }

@@ -1,6 +1,6 @@
 # Revival implementation notes
 
-**Applies to:** changes present in the `0.1.2` tree; server-side counterparts are marked "separate repository". Last updated: 2026-10-25.
+**Applies to:** changes present in the `0.1.2` tree; server-side counterparts are marked "separate repository". Last updated: 2026-10-27.
 
 
 This document records concrete changes made to the supplied PC port for the
@@ -15,15 +15,23 @@ does not claim the changes are part of an upstream Zombie Lane release.
 Before the game window opens, the player gets one Swing screen where they
 choose:
 
-- **Mode LOCAL** — no network connection is attempted at all, neither to a
-  local server nor to any external host. No save review, no anticheat.
-  Other local profiles keep being listed as neighbors exactly as
-  `LocalProfiles` does today. [implemented]
-- **Mode SERVER** — host, port, user name and password fields, a
-  **Probar conexión** button that performs a single `GET /health` request
-  (3 second connect/read timeout) against exactly the typed host and shows a
-  clear outcome (ok / no answer / invalid host or port). No other call is
-  made. [implemented]
+- **Mode LOCAL** — game traffic is blocked. The manual **Probar conexiones**
+  button remains available and checks only the report receiver with one GET;
+  it does not contact game or public-status services. Separately, a report may
+  be sent through the dedicated report client only after explicit alpha
+  consent. No save review, no anticheat. Other local profiles keep being listed
+  as neighbors exactly as `LocalProfiles` does today. [implemented]
+- **Mode SERVER** — host, port, user name and password fields, and a manual
+  **Probar conexiones** button. In SERVER mode it runs four read-only checks
+  concurrently: `GET /health` on the typed game host (3 second timeout), the
+  public page at `https://zl.jorgelio.cl/status`, its sanitized status JSON at
+  `/status/public-status.json` (must say online and be no more than 5 minutes
+  old), and `GET https://reports.jorgelio.cl/health.php`. In LOCAL mode the
+  same button checks only the report receiver with one GET; it does not contact
+  game or public-status services. External checks use 4-second connect/read
+  timeouts and do not follow redirects. Neither mode sends credentials or a
+  report. This is separate from the launch gate, which checks only the selected
+  game server before online play. [implemented]
 - **Window and game options** — fullscreen, maximized, window size (the
   1136x640 logical resolution never changes; only the OS window), pause on
   focus loss, audio on/off (`--no-audio`), log level, and the zombie spawn
@@ -70,10 +78,16 @@ choose:
   `zombie-lane.properties` keys stay as they are for post-launch
   compatibility. [implemented]
 - [`ServerConnection.java`](../../src/launcher-ios/zlport/launcher/ServerConnection.java)
-  composes the game URL (`http://HOST:PORT/dead/`), validates host/port/user
-  and performs the only network operation of the launcher: the `/health`
-  probe. `parseEndpoint` backs the `--server HOST:PORT` flag.
+  composes the game URL (`http://HOST:PORT/dead/`), validates host/port/user,
+  and implements the launch-gate `GET /health` probe without following
+  redirects. `parseEndpoint` backs the `--server HOST:PORT` flag.
   [implemented]
+- [`ConnectivityChecks.java`](../../src/launcher-ios/zlport/launcher/ConnectivityChecks.java)
+   implements the button's four concurrent GET checks in SERVER mode: game
+   `/health`, public page, public status snapshot, and the report receiver's
+   `/health.php`. LOCAL mode checks only that receiver endpoint. Neither mode
+   sends credentials or a report body; missing, stale, or offline public
+   status data is unavailable. [implemented]
 - [`PendingCredentials.java`](../../src/launcher-ios/zlport/launcher/PendingCredentials.java)
   stages the typed password in memory for the current JVM run only.
   See the password decision below. [implemented]
@@ -102,7 +116,7 @@ choose:
   Extra arguments are forwarded (`--no-launcher`, `--mode`,
   `--no-profile-picker` keep working). [implemented]
 
-### LOCAL mode: no network
+### LOCAL mode: game networking is blocked
 
 In LOCAL mode the launcher installs `zlport.launcher.OfflineNetwork` before
 the runtime starts. This choice is deliberate: the guard is a
@@ -112,18 +126,24 @@ asset and session requests (current and future) needs zero per-servlet
 changes and cannot silently regress into partial connectivity; a per-servlet
 fail-fast flag inside the game code would have to chase every request path.
 The install therefore happens explicitly and only for LOCAL mode, so SERVER
-mode still reaches the configured server. The revival repository's smoke
-suite starts a fake HTTP server on the local machine, selects LOCAL mode, and
-proves the server receives zero connections while every blocked attempt is
-still recorded. [implemented], [smoke-tested]
+mode still reaches the configured server. The separate diagnostic-report
+uploader uses `java.net.http.HttpClient` and can send only after explicit alpha
+consent; it is not a game-server request. The manual connection button in
+LOCAL mode checks only the report receiver with a read-only GET. The revival
+repository's smoke suite starts a fake HTTP server on the local machine,
+selects LOCAL mode, and proves the server receives zero game-network
+connections while every blocked attempt is still recorded. [implemented],
+[smoke-tested]
 
 ### SERVER mode: connection and identity
 
 `zlport.server.url` is composed as `http://HOST:PORT/dead/` (the shape the
-client already expects). The account id decision is below; nothing besides
-the typed host is contacted, and the probe is the only launcher request.
-Before starting the game in SERVER mode the launcher runs that same probe
-and **refuses to launch when the server does not answer**: without a
+client already expects). The account id decision is below. The launch gate's
+health probe contacts only the typed game host; the manual multi-service
+button separately contacts the fixed public status and report-health URLs
+listed above, only when pressed. Before starting the game in SERVER mode the
+launcher runs the game-health probe and **refuses to launch when the server
+does not answer**: without a
 reachable server there is no online play (client-side validation of the
 typed user and password happens first, without network). The same gate covers
 `--no-launcher` scripted SERVER launches: they print the message and exit 1
