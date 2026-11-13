@@ -60,11 +60,13 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $classes = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION/client-overrides"
+          $libraries = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION/lib/*"
           $testClasses = Join-Path $env:RUNNER_TEMP "zl-client-tests-$env:GITHUB_RUN_ID"
           New-Item -ItemType Directory -Force -Path $testClasses | Out-Null
-          javac --release 21 -encoding UTF-8 -cp $classes -d $testClasses tests/SessionReportSmoke.java tests/ConnectivityChecksSmoke.java
+          $buildClasspath = "$classes;$libraries"
+          javac --release 21 -encoding UTF-8 -cp $buildClasspath -d $testClasses tests/SessionReportSmoke.java tests/ConnectivityChecksSmoke.java
           if ($LASTEXITCODE -ne 0) { throw 'Smoke test compilation failed.' }
-          $classpath = "$testClasses;$classes"
+          $classpath = "$testClasses;$buildClasspath"
           foreach ($test in @('zlport.launcher.SessionReportSmoke', 'zlport.launcher.ConnectivityChecksSmoke')) {
             java -Djava.awt.headless=true -Dzlport.client.version=0.1.3 -cp $classpath $test
             if ($LASTEXITCODE -ne 0) { throw "$test failed." }
