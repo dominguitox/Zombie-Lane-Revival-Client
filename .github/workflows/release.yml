@@ -1,0 +1,92 @@
+name: Build and publish Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: client-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Dedicated, trusted Windows runner with the external asset tree installed.
+    runs-on: [self-hosted, Windows, X64, zl-client-release]
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      ASSETS_ROOT: ${{ vars.CLIENT_ASSETS_ROOT }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate tag, source and runner
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_REF_NAME -notmatch '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z][0-9A-Za-z.-]*))?$') {
+            throw 'Tag must be vMAJOR.MINOR.PATCH or vMAJOR.MINOR.PATCH-suffix.'
+          }
+          $version = $env:GITHUB_REF_NAME.Substring(1)
+          if ([string]::IsNullOrWhiteSpace($env:ASSETS_ROOT)) { throw 'Set repository variable CLIENT_ASSETS_ROOT to the asset directory on the runner.' }
+          if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI (gh) is required on the runner.' }
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Release tag must point to a commit reachable from main.' }
+          $source = Get-Content -Raw 'src/launcher-ios/zlport/launcher/SessionReport.java'
+          $match = [regex]::Match($source, 'static\s+final\s+String\s+RELEASE_VERSION\s*=\s*"([^"]+)"')
+          if (-not $match.Success -or $match.Groups[1].Value -cne $version) {
+            throw "Tag version $version must match SessionReport.RELEASE_VERSION."
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Build and verify package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $output = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION"
+          & ./tools/build-client.ps1 -AssetsRoot $env:ASSETS_ROOT -OutputRoot $output -Version $env:VERSION -Release
+          if (-not (Test-Path -LiteralPath "$output.zip" -PathType Leaf)) { throw 'Release ZIP was not created.' }
+
+      - name: Run existing Java smoke tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $classes = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION/client-overrides"
+          $libraries = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION/lib/*"
+          $testClasses = Join-Path $env:RUNNER_TEMP "zl-client-tests-$env:GITHUB_RUN_ID"
+          New-Item -ItemType Directory -Force -Path $testClasses | Out-Null
+          $buildClasspath = "$classes;$libraries"
+          javac --release 21 -encoding UTF-8 -cp $buildClasspath -d $testClasses tests/SessionReportSmoke.java tests/ConnectivityChecksSmoke.java
+          if ($LASTEXITCODE -ne 0) { throw 'Smoke test compilation failed.' }
+          $classpath = "$testClasses;$buildClasspath"
+          foreach ($test in @('zlport.launcher.SessionReportSmoke', 'zlport.launcher.ConnectivityChecksSmoke')) {
+            java -Djava.awt.headless=true -Dzlport.client.version=0.1.3 -cp $classpath $test
+            if ($LASTEXITCODE -ne 0) { throw "$test failed." }
+          }
+
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION.zip"
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          $sums = Join-Path $env:RUNNER_TEMP 'SHA256SUMS.txt'
+          [IO.File]::WriteAllText($sums, "$hash  $([IO.Path]::GetFileName($zip))`n", [Text.UTF8Encoding]::new($false))
+
+      - name: Publish release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = Join-Path $env:RUNNER_TEMP "Zombie-Lane-Alpha-$env:VERSION.zip"
+          $sums = Join-Path $env:RUNNER_TEMP 'SHA256SUMS.txt'
+          $args = @('release', 'create', $env:GITHUB_REF_NAME, $zip, $sums, '--repo', $env:GITHUB_REPOSITORY, '--verify-tag', '--title', "Zombie Lane Revival $env:VERSION", '--generate-notes')
+          if ($env:VERSION.Contains('-')) { $args += '--prerelease' }
+          gh @args
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; inspect GitHub Releases before retrying.' }
